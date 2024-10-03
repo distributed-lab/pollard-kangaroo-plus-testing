@@ -14,8 +14,8 @@ type ConfigElement struct {
 	Alpha           float64 `json:"alpha"`
 	M               float64 `json:"m"`
 	Tame            int64   `json:"tame"`
-	C               int64   `json:"c"`
-	D               float64 `json:"d"`
+	D               int64   `json:"d"`
+	I               float64 `json:"i"`
 	TableNum        int     `json:"tableNum"`
 	AllowWriteTable bool    `json:"allowWriteTable"`
 }

@@ -34,7 +34,7 @@ It is possible to launch a binary without experiment-launcher program. All you n
 An example of such a command with all above arguments is listed below.
 
 ```shell
-./test -r 128 -a 1.000000 -m 0.500000 -d 4.000000 -t 8192 -c 8 -l logs/test-0.txt -p tables/table_0.bin -w 1 -s 48 
+./test -r 128 -a 1.000000 -m 0.500000 -i 4.000000 -t 8192 -d 8 -l logs/test-0.txt -p tables/table_0.bin -w 1 -s 48 
 -b binary/secrets.bin
 ```
 

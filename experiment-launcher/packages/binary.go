@@ -30,13 +30,13 @@ func mergeFlags(confElem ConfigElement, i, secretSize int, logsDir, tablesDir, s
 	res = append(res, fmt.Sprintf("%f", confElem.M))
 
 	res = append(res, flags[3])
-	res = append(res, fmt.Sprintf("%f", confElem.D))
+	res = append(res, fmt.Sprintf("%f", confElem.I))
 
 	res = append(res, flags[4])
 	res = append(res, fmt.Sprintf("%d", confElem.Tame))
 
 	res = append(res, flags[5])
-	res = append(res, fmt.Sprintf("%d", confElem.C))
+	res = append(res, fmt.Sprintf("%d", confElem.D))
 
 	res = append(res, flags[6])
 	res = append(res, newRelativeLogPath(i, logsDir))

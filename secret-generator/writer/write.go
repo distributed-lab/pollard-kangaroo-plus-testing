@@ -10,7 +10,7 @@ import (
 
 func WriteNumberOfSecrets(file *os.File, secretsNum int) error {
 	count := uint64(secretsNum)
-	err := binary.Write(file, binary.BigEndian, count)
+	err := binary.Write(file, binary.LittleEndian, count)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to write a number of secrets: %v", err))
 	}
@@ -23,7 +23,7 @@ func WriteSecret(file *os.File, num *big.Int) error {
 
 	// Write the size of the byte slice (size_t equivalent)
 	strSize := uint64(len(bigIntBytes))
-	err := binary.Write(file, binary.BigEndian, strSize)
+	err := binary.Write(file, binary.LittleEndian, strSize)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to write num size: %v", err))
 	}

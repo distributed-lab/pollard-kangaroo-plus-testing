@@ -5,7 +5,7 @@ This program will help generate test cases based on the provided constants.
 Running the following command
 
 ```sh 
-go run main.go --secret-size 64 --config conf.json
+go run main.go --secret-size 64 --config config.json
 ```
 
 will generate `config.json` file for 64 bits size secrets. 
