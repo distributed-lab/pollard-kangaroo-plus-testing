@@ -19,3 +19,13 @@ func GenInts64(min int64, max int64, elements int64) []int64 {
 
 	return values
 }
+
+func GenWs(w int64, elements int64) []int64 {
+	values := make([]int64, elements)
+
+	for i := int64(1); i <= elements; i++ {
+		values[i-1] = w * i
+	}
+
+	return values
+}

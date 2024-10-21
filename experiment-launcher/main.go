@@ -32,6 +32,7 @@ func initTestDir(logDir string) {
 	}
 }
 
+// 7362172
 func main() {
 	// Gte provided flags
 	flags := packages.GetFlags()

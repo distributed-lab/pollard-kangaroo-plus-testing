@@ -12,11 +12,10 @@ type Config []ConfigElement
 
 type ConfigElement struct {
 	R               int64   `json:"r"`
-	Alpha           float64 `json:"alpha"`
 	M               float64 `json:"m"`
-	Tame            int64   `json:"tame"`
-	D               int64   `json:"d"`
 	I               float64 `json:"i"`
+	N               int64   `json:"n"`
+	W               int64   `json:"w"`
 	TableNum        int     `json:"tableNum"`
 	AllowWriteTable bool    `json:"allowWriteTable"`
 }

@@ -15,7 +15,6 @@ void init_logger(std::string path) {
 bool log(const std::string& message) {
     std::cout << message << std::endl;
 
-    // Open the file in append mode to add to the file instead of overwriting
     std::ofstream file(log_path, std::ios::app);
 
     if (!file.is_open()) {
@@ -25,9 +24,7 @@ bool log(const std::string& message) {
 
     file << message << std::endl;
 
-    // Flush file buffer to ensure content is written immediately
     file.flush();
-
     file.close();
 
     return true;

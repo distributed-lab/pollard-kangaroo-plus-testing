@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-var flags = []string{"-r", "-a", "-m", "-i", "-t", "-d", "-l", "-p", "-w", "-s", "-b"}
+var flags = []string{"-r", "-m", "-i", "-n", "-w", "-l", "-p", "-t", "-s", "-b"}
 
 func newRelativeTablePath(i int, tableDir string) string {
 	return fmt.Sprintf("%s/table_%d.bin", tableDir, i)
@@ -24,24 +24,21 @@ func mergeFlags(confElem ConfigElement, i, secretSize int, logsDir, tablesDir, s
 	res = append(res, fmt.Sprintf("%d", confElem.R))
 
 	res = append(res, flags[1])
-	res = append(res, fmt.Sprintf("%f", confElem.Alpha))
-
-	res = append(res, flags[2])
 	res = append(res, fmt.Sprintf("%f", confElem.M))
 
-	res = append(res, flags[3])
+	res = append(res, flags[2])
 	res = append(res, fmt.Sprintf("%f", confElem.I))
 
+	res = append(res, flags[3])
+	res = append(res, fmt.Sprintf("%d", confElem.N))
+
 	res = append(res, flags[4])
-	res = append(res, fmt.Sprintf("%d", confElem.Tame))
+	res = append(res, fmt.Sprintf("%d", confElem.W))
 
 	res = append(res, flags[5])
-	res = append(res, fmt.Sprintf("%d", confElem.D))
-
-	res = append(res, flags[6])
 	res = append(res, newRelativeLogPath(i, logsDir))
 
-	res = append(res, flags[7])
+	res = append(res, flags[6])
 	res = append(res, newRelativeTablePath(i, tablesDir))
 
 	boolVal := 0
@@ -49,13 +46,13 @@ func mergeFlags(confElem ConfigElement, i, secretSize int, logsDir, tablesDir, s
 		boolVal = 1
 	}
 
-	res = append(res, flags[8])
+	res = append(res, flags[7])
 	res = append(res, fmt.Sprintf("%d", boolVal))
 
-	res = append(res, flags[9])
+	res = append(res, flags[8])
 	res = append(res, fmt.Sprintf("%d", secretSize))
 
-	res = append(res, flags[10])
+	res = append(res, flags[9])
 	res = append(res, secretsPath)
 
 	return res

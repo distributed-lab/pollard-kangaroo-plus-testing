@@ -20,21 +20,21 @@ the desired folder which will be used for launching an experiment with series of
 
 It is possible to launch a binary without experiment-launcher program. All you need is to provide the next flags:
 - `-r` - number of slog-s to generate (R value);
-- `-a` - multiplier for defining the number of so-called `wild kangaroos` (W value);
 - `-m` - multiplier of an upper secret bound on a preprocessing stage;
 - `-i` - number of iterations for one loop;
-- `-t` - number of so-called 'tame kangaroos' (T value);
-- `-d` - N/T ratio;
+- `-n` - number of elements in the table
+- `-w` - number of steps to find a distinguished point from the chain of generated points (should be equal to the result 
+of powering 2 to some value);
 - `-l` - a path to locate test logs;
 - `-p` - a path to locate a generated table;
-- `-w` - allow to generate and write a table (0 - do not allow, 1 - allow);
+- `-t` - allow to generate and write a table (0 - do not allow, 1 - allow);
 - `-s` - size of a secret;
 - `-b` - a path to a binary with secrets.
 
 An example of such a command with all above arguments is listed below.
 
 ```shell
-./test -r 128 -a 1.000000 -m 0.500000 -i 4.000000 -t 8192 -d 8 -l logs/test-0.txt -p tables/table_0.bin -w 1 -s 48 
+./test -r 128 -m 0.5 -i 4 -t 800 -w 524288 -l logs/test-60bit.txt -p tables/table_60.bin -w 1 -s 48 
 -b binary/secrets.bin
 ```
 

@@ -12,7 +12,7 @@ const defaultTableFolder = "tables"
 const defaultTableSize = 48
 const defaultSecretsPath = "binary/secrets.bin"
 
-var defaultCpuNum = runtime.NumCPU() / 2
+var defaultCpuNum = runtime.NumCPU()
 
 type Flags struct {
 	CpuNum      int

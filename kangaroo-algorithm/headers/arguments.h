@@ -5,11 +5,13 @@
 
 struct ParsedArgs {
     long r;
-    double alpha;
+//    double alpha;
     double m;
     double i;
-    long t;
-    long rat;
+//    long t;
+    long n;
+    long w;
+//    long rat;
     std::string log_path;
     std::string table_path;
     bool allow_write_table;

@@ -5,27 +5,23 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
-struct TableEntry {
-    mpz_class x;
+struct TableEntryMap {
     mpz_class log;
-    long long weight;
 
     void writeToFile(std::ofstream& outFile) const;
 
     void readFromFile(std::ifstream& inFile);
 };
 
-struct TableData {
-    TableEntry* table;
-    size_t size;
+struct TableDataMap {
+    std::unordered_map<std::string, TableEntryMap> tableMap;
 
-    bool writeToFile(std::string path) const;
+    bool writeToFile(std::string path);
 
     bool readFromFile(std::string path);
 };
 
-bool tablesort(TableEntry i, TableEntry j);
-bool tablesort2(TableEntry i, TableEntry j);
 
 #endif //KANGAROO___TABLE_H

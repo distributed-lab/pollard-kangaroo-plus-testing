@@ -2,6 +2,7 @@
 #include <iostream>
 #include <gmpxx.h>
 #include <string>
+#include <chrono>
 
 #include "../headers/secrets.h"
 #include "../headers/table.h"
@@ -21,11 +22,10 @@ int main(int argc, char *argv[])
     ParsedArgs parsed = parse_args(argc, argv);
 
     auto algo = new KangarooAlgorithm(
-            parsed.t * parsed.rat,
-            parsed.t,
+            parsed.n,
+            parsed.w,
             parsed.secret_size,
             parsed.i,
-            parsed.alpha,
             parsed.m,
             parsed.r,
             p
@@ -37,16 +37,16 @@ int main(int argc, char *argv[])
     init_logger(log_path);
 
     SecretsData secrets = read_secrets(parsed.secret_path);
+    double l_float = algo -> l.get_d();
 
     log("Activating the test with next data:");
     log("R: " + std::to_string(algo -> R));
     log("W: " + std::to_string(algo -> W));
     log("T: " + std::to_string(algo -> T));
-    log("C: " + std::to_string(parsed.rat));
     log("N: " + std::to_string(algo -> N));
-    log("Alpha: " + std::to_string(parsed.alpha));
     log("M: " + std::to_string(algo -> m));
     log("i: " + std::to_string(algo -> i));
+    log("alpha = " + std::to_string(algo -> W / std::sqrt(l_float / algo -> T)));
     log("Secret size: " + std::to_string(parsed.secret_size) + " bits");
     log("Logs will be stored into: " + parsed.log_path);
 
@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
 
         auto preprocessing_start = std::chrono::high_resolution_clock::now();
 
-        PreprocessingResult res = algo->generate_table();
+        PreprocessingResult res = algo->generate_table_parallel_map();
+
 
         auto preprocessing_end = std::chrono::high_resolution_clock::now();
         log("Preprocessing complete with time: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(preprocessing_end - preprocessing_start).count()) + " millis");
@@ -72,29 +73,17 @@ int main(int argc, char *argv[])
             log("no repeated distinguished points found");
         }
 
-        // Write a generated table to a file
-        TableData data = {algo -> table, static_cast<size_t>(algo -> N)};
-
-        bool is_file_written = data.writeToFile(parsed.table_path);
-        if (!is_file_written) {
-            std::cout << "failed to write a table to file" << "\n";
-        } else {
-            std::cout << "table file is written" << "\n";
-        }
-
         log(std::to_string(res.numsteps) + " precomputation steps; ");
-    } else {
-        // Read a generated table from a file
-        TableData data = *new TableData();
-        if (data.readFromFile(parsed.table_path)) {
-            log("Table " + parsed.table_path + " is read, skip processing.");
+        auto is_table_written = algo->tableMap.writeToFile(parsed.table_path);
+        if (is_table_written) {
+            log("Generated table is written");
         } else {
-            log("Cant read a table :<");
-            return 0;
+            log("Generated table is not written due to unknown error");
         }
-
-        algo -> table = data.table;
+    } else {
+        algo->tableMap.readFromFile(parsed.table_path);
     }
+
 
     unsigned long long total_time = 0;
     unsigned long long worst_result = 0;
@@ -115,7 +104,7 @@ int main(int argc, char *argv[])
         log("Solving problem # " + std::to_string(i));
         auto main_start = std::chrono::high_resolution_clock::now();
 
-        auto res = algo->solve_dlp(h);
+        auto res = algo->solve_dlp_map_parallel(h);
 
         auto main_end = std::chrono::high_resolution_clock::now();
         unsigned long long spent_time = std::chrono::duration_cast<std::chrono::milliseconds>(main_end - main_start).count();

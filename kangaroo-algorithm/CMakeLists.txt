@@ -1,17 +1,19 @@
 cmake_minimum_required(VERSION 3.28)
-project(dl-dlp-kangaroo-testing)
+project(kangaroo_algorithm)
 
-set(CMAKE_CXX_STANDARD 17)
-add_executable(new_target source/main.cpp
-        source/secrets.cpp
-        headers/secrets.h
-        source/secrets.cpp
-        source/arguments.cpp
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(headers /opt/homebrew/include)
+
+add_executable(kangaroo_algorithm
         headers/arguments.h
-        source/table.cpp
-        headers/table.h
-        source/logger.cpp
-        headers/logger.h
-        source/kangaroo.cpp
         headers/kangaroo.h
-        source/kangaroo.cpp)
+        headers/logger.h
+        headers/secrets.h
+        headers/table.h
+        source/arguments.cpp
+        source/kangaroo.cpp
+        source/logger.cpp
+        source/main.cpp
+        source/secrets.cpp
+        source/table.cpp)
