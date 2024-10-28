@@ -68,7 +68,9 @@ void KangarooAlgorithm::parallel_loop_map(std::unordered_map<std::string, long l
 
         for (int loop = 0;loop < 8*W;++loop) {
             if (distinguished(w)) {
+                mut.lock();
                 auto distEntry = tableMap.tableMap[w.get_str(16)];
+                mut.unlock();
 
                 if (distEntry.log == 0) {
                     tableMap.tableMap[w.get_str(16)] = TableEntryMap{wlog};
