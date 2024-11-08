@@ -57,7 +57,7 @@ open class Kangaroo {
         self.table = .init()
 
         // TODO: - Make configurable
-        self.kangarooTableGenerator = .init(workersCount: 16)
+        self.kangarooTableGenerator = .init(workersCount: 1)
 
         try self.generateRandomValues()
     }
@@ -68,9 +68,9 @@ open class Kangaroo {
                 W: w,
                 n: n,
                 secretSize: secretSize,
-                distinguishedRule: { [unowned self] _ in self.isDistinguished() },
+                distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
                 keypairGenerationRule: { [unowned self] in try! generateKeypair(secretSize: secretSize) },
-                hashRule: { [unowned self] _ in self.hash() },
+                hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
                 slog: slog,
                 s: s
             )
@@ -78,12 +78,12 @@ open class Kangaroo {
         table = generatedTable
     }
 
-    private func hash() -> Int {
-        return 1
+    private func hash(pubKey: BigInt) -> Int {
+        return Int(pubKey & (self.r - 1))
     }
 
-    private func isDistinguished() -> Bool {
-        true
+    private func isDistinguished(pubKey: BigInt) -> Bool {
+        return ((pubKey & (w - 1)) == 0)
     }
 
     private func generateRandomValues() throws {

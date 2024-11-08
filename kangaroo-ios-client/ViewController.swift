@@ -6,10 +6,17 @@
 //
 
 import UIKit
+import BigInt
 
 class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let kangaroo = try! Kangaroo.init(n: 150, w: BigInt(integerLiteral: 1024), secretSize: 16)
+
+        Task {
+            try await kangaroo.generateTableParalized()
+        }
     }
 }
 
