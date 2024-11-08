@@ -1,9 +1,14 @@
+import { log } from 'console';
 import * as fs from 'fs';
 
 export class TableMap{
+    s: bigint[];
+    slog: bigint[];
     table: Map<bigint, bigint>
 
     constructor() {
+        this.s = new Array<bigint>
+        this.slog = new Array<bigint>
         this.table = new Map<bigint, bigint>
     }
 
@@ -105,4 +110,35 @@ export class TableMap{
             return false;
         }
     }    
+
+    // Method to serialize the TableMap to JSON format
+    writeJson(w: bigint, n: number, secretSize: number): string {
+        return JSON.stringify({
+            file_name: `output_${w.toString()}_${n}_${secretSize}.json`,
+            s: this.s.map(value => value.toString(16)),
+            slog: this.slog.map(value => value.toString(16)),
+            table: Array.from(this.table.entries()).map(([key, value]) => ({
+                point: key.toString(16),
+                value: value.toString(16)
+            }))
+        });
+    }
+
+    // Static method to create a TableMap from JSON data
+    readJson(jsonString: string) {
+        const parsedData = JSON.parse(jsonString);
+
+        const s = parsedData.s.map((value: string) => BigInt('0x' + value));
+        const slog = parsedData.slog.map((value: string) => BigInt('0x' + value));
+        const table = new Map<bigint, bigint>(
+            parsedData.table.map((entry: { point: string; value: string }) => [
+                BigInt('0x' + entry.point),
+                BigInt('0x' + entry.value)
+            ])
+        );
+
+        this.s = s
+        this.slog = slog
+        this.table = table
+    }
 }

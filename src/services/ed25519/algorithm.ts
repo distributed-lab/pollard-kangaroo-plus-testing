@@ -10,9 +10,7 @@ export class KangarooEd25519 {
     r: bigint;
     secretSize: number;
 
-    s: bigint[];
-    slog: bigint[];
-
+    // s: bigint[];
     table: TableMap
 
     constructor(n: number, w: bigint, secretSize: number) {
@@ -22,9 +20,6 @@ export class KangarooEd25519 {
         this.l = BigInt(2**secretSize);
         this.r = 128n;
         
-        this.s = new Array<bigint>();
-        this.slog = new Array<bigint>();
-
         this.table = new TableMap()
 
         this.initS();
@@ -58,8 +53,8 @@ export class KangarooEd25519 {
             )
             
             // TODO: there might be a case when sValue is 0
-            this.slog[i] = sValue
-            this.s[i] = this.mulBasePoint(sValue)
+            this.table.slog[i] = sValue
+            this.table.s[i] = this.mulBasePoint(sValue)
         }
     }
 
@@ -99,14 +94,16 @@ export class KangarooEd25519 {
                 }
 
                 const h = this.hash(w)                
-                wlog = wlog + this.slog[h]
-                w = this.addPoints(w, this.s[h])
+                wlog = wlog + this.table.slog[h]
+                w = this.addPoints(w, this.table.s[h])
             }
         }
+
+        // this.initS()
     }
 
     async solveDLP(pubKey: bigint, numberOfThreads: number = navigator.hardwareConcurrency || 1): Promise<bigint> {
-        const workerData = new WorkerData(this.secretSize, pubKey, this.w, this.r, this.slog, this.s, this.table.table);
+        const workerData = new WorkerData(this.secretSize, pubKey, this.w, this.r, this.table.slog, this.table.s, this.table.table);
 
         let workers: Worker[] = []
         for (let i = 0; i < numberOfThreads; i++) {
@@ -119,5 +116,41 @@ export class KangarooEd25519 {
         Utils.terminateWorkers(workers)
 
         return result
+    }
+
+    async writeJsonToServer() {
+        const tableJSON = this.table.writeJson(this.w, this.n, this.secretSize)
+
+        await fetch('http://localhost:3000/upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: tableJSON,
+        })
+    }
+
+    async readJsonFromServer(): Promise<boolean> {
+        const response = await fetch(`http://localhost:3000/table?file_name=output_${this.w.toString()}_${this.n}_${this.secretSize}.json`)
+        
+        if (!response.ok) {
+            return false
+        }
+        
+        this.table.readJson(JSON.stringify(await response.json()))
+        return true
+    }
+
+    async writeLogsToServer(text: string) {
+        await fetch('http://localhost:3000/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify({
+                filename: `log_${this.w.toString()}_${this.n}_${this.secretSize}.txt`,
+                text: text,
+            }),
+        })
     }
 }
