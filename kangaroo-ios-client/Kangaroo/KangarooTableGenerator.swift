@@ -94,7 +94,6 @@ actor KangarooTableGenerator {
         channel: AsyncChannel<DistinguishedDot?>
     ) {
         print("Starting a new worker")
-        return
 
         let workerTask = Task {
             await startWorker(

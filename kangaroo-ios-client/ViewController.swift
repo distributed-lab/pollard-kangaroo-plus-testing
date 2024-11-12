@@ -14,9 +14,10 @@ class ViewController: UIViewController {
 
         let kangaroo = try! Kangaroo.init(n: 150, w: BigInt(integerLiteral: 1024), secretSize: 16)
 
-        Task {
-            try await kangaroo.generateTableParalized()
-        }
+
+//        Task {
+//            try await kangaroo.generateTableParalized()
+//        }
     }
 }
 

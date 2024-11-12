@@ -69,7 +69,7 @@ open class Kangaroo {
                 n: n,
                 secretSize: secretSize,
                 distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
-                keypairGenerationRule: { [unowned self] in try! generateKeypair(secretSize: secretSize) },
+                keypairGenerationRule: { [unowned self] in (BigInt(), BigInt()) },
                 hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
                 slog: slog,
                 s: s
@@ -88,17 +88,19 @@ open class Kangaroo {
 
     private func generateRandomValues() throws {
         for i in 0..<self.r {
-            let (slog, s) = try generateKeypair(secretSize: self.secretSize - 2)
-            self.slog.insert(BigInt(slog), at: Int(i))
+            let slog = BigInt.random(limit: BigInt.random(bits: secretSize - 2) ?? 0 / w)
+            let slogZerosPaddedData = KangarooHelpers.padWithZerosEnd(input: slog.magnitude.serialize(), length: 32)
+            let privateKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: slogZerosPaddedData)
+            let s = BigInt(privateKey.publicKey.rawRepresentation)
+
+            self.slog.insert(
+                BigInt(
+                    sign: slog.sign,
+                    magnitude: BigUInt(slogZerosPaddedData)
+                ),
+                at: Int(i)
+            )
             self.s.insert(s, at: Int(i))
         }
-    }
-
-    private func generateKeypair(secretSize: Int) throws -> (privateKey: BigInt, publicKey: BigInt) {
-        let slog = KangarooHelpers.generateRandomBigInt(bitSize: secretSize - 2) / w
-        let slogZerosPadded = KangarooHelpers.padWithZerosEnd(input: slog.serialize(), length: 32)
-        let privateKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: slogZerosPadded)
-        let s = BigInt(privateKey.publicKey.rawRepresentation)
-        return (BigInt(slogZerosPadded), s)
     }
 }

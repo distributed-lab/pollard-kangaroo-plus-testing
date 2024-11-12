@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5885BF6B2CE3B06400365946 /* sc.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF652CE3B06400365946 /* sc.c */; };
+		5885BF6C2CE3B06400365946 /* sha512.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF682CE3B06400365946 /* sha512.c */; };
+		5885BF6D2CE3B06400365946 /* verify.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF6A2CE3B06400365946 /* verify.c */; };
+		5885BF6E2CE3B06400365946 /* fe.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF5D2CE3B06400365946 /* fe.c */; };
+		5885BF6F2CE3B06400365946 /* keypair.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF622CE3B06400365946 /* keypair.c */; };
+		5885BF702CE3B06400365946 /* sign.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF692CE3B06400365946 /* sign.c */; };
+		5885BF712CE3B06400365946 /* key_exchange.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF612CE3B06400365946 /* key_exchange.c */; };
+		5885BF722CE3B06400365946 /* ge.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF602CE3B06400365946 /* ge.c */; };
+		5885BF732CE3B06400365946 /* seed.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF662CE3B06400365946 /* seed.c */; };
+		5885BF742CE3B06400365946 /* add_scalar.c in Sources */ = {isa = PBXBuildFile; fileRef = 5885BF5A2CE3B06400365946 /* add_scalar.c */; };
 		588AB9402CD3E7EB002E2DEF /* BigInt in Frameworks */ = {isa = PBXBuildFile; productRef = 588AB93F2CD3E7EB002E2DEF /* BigInt */; };
 		588BA12C2CD4E5AB0022675F /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 588BA12B2CD4E5AB0022675F /* Crypto */; };
 		588BA12E2CD4E5AB0022675F /* _CryptoExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 588BA12D2CD4E5AB0022675F /* _CryptoExtras */; };
@@ -30,7 +40,38 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		581444722CE238EA0051B064 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5885BF452CE3AFD700365946 /* ed25519_bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ed25519_bridge.h; sourceTree = "<group>"; };
+		5885BF5A2CE3B06400365946 /* add_scalar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = add_scalar.c; sourceTree = "<group>"; };
+		5885BF5B2CE3B06400365946 /* ed25519.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ed25519.h; sourceTree = "<group>"; };
+		5885BF5C2CE3B06400365946 /* fe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fe.h; sourceTree = "<group>"; };
+		5885BF5D2CE3B06400365946 /* fe.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fe.c; sourceTree = "<group>"; };
+		5885BF5E2CE3B06400365946 /* fixedint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fixedint.h; sourceTree = "<group>"; };
+		5885BF5F2CE3B06400365946 /* ge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ge.h; sourceTree = "<group>"; };
+		5885BF602CE3B06400365946 /* ge.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ge.c; sourceTree = "<group>"; };
+		5885BF612CE3B06400365946 /* key_exchange.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = key_exchange.c; sourceTree = "<group>"; };
+		5885BF622CE3B06400365946 /* keypair.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = keypair.c; sourceTree = "<group>"; };
+		5885BF632CE3B06400365946 /* precomp_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = precomp_data.h; sourceTree = "<group>"; };
+		5885BF642CE3B06400365946 /* sc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sc.h; sourceTree = "<group>"; };
+		5885BF652CE3B06400365946 /* sc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sc.c; sourceTree = "<group>"; };
+		5885BF662CE3B06400365946 /* seed.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = seed.c; sourceTree = "<group>"; };
+		5885BF672CE3B06400365946 /* sha512.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sha512.h; sourceTree = "<group>"; };
+		5885BF682CE3B06400365946 /* sha512.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sha512.c; sourceTree = "<group>"; };
+		5885BF692CE3B06400365946 /* sign.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sign.c; sourceTree = "<group>"; };
+		5885BF6A2CE3B06400365946 /* verify.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = verify.c; sourceTree = "<group>"; };
 		588AB90A2CD3E3D7002E2DEF /* kangaroo-ios-client.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kangaroo-ios-client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		588AB9202CD3E3D8002E2DEF /* kangaroo-ios-clientTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kangaroo-ios-clientTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		588AB92A2CD3E3D8002E2DEF /* kangaroo-ios-clientUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "kangaroo-ios-clientUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,9 +137,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		58729A5F2CE3AFA10039DF02 /* Ed25519 */ = {
+			isa = PBXGroup;
+			children = (
+				5885BF5A2CE3B06400365946 /* add_scalar.c */,
+				5885BF5B2CE3B06400365946 /* ed25519.h */,
+				5885BF5C2CE3B06400365946 /* fe.h */,
+				5885BF5D2CE3B06400365946 /* fe.c */,
+				5885BF5E2CE3B06400365946 /* fixedint.h */,
+				5885BF5F2CE3B06400365946 /* ge.h */,
+				5885BF602CE3B06400365946 /* ge.c */,
+				5885BF612CE3B06400365946 /* key_exchange.c */,
+				5885BF622CE3B06400365946 /* keypair.c */,
+				5885BF632CE3B06400365946 /* precomp_data.h */,
+				5885BF642CE3B06400365946 /* sc.h */,
+				5885BF652CE3B06400365946 /* sc.c */,
+				5885BF662CE3B06400365946 /* seed.c */,
+				5885BF672CE3B06400365946 /* sha512.h */,
+				5885BF682CE3B06400365946 /* sha512.c */,
+				5885BF692CE3B06400365946 /* sign.c */,
+				5885BF6A2CE3B06400365946 /* verify.c */,
+				5885BF452CE3AFD700365946 /* ed25519_bridge.h */,
+			);
+			path = Ed25519;
+			sourceTree = "<group>";
+		};
 		588AB9012CD3E3D7002E2DEF = {
 			isa = PBXGroup;
 			children = (
+				58729A5F2CE3AFA10039DF02 /* Ed25519 */,
 				588AB90C2CD3E3D7002E2DEF /* kangaroo-ios-client */,
 				588AB9232CD3E3D8002E2DEF /* kangaroo-ios-clientTests */,
 				588AB92D2CD3E3D8002E2DEF /* kangaroo-ios-clientUITests */,
@@ -126,6 +193,7 @@
 				588AB9062CD3E3D7002E2DEF /* Sources */,
 				588AB9072CD3E3D7002E2DEF /* Frameworks */,
 				588AB9082CD3E3D7002E2DEF /* Resources */,
+				581444722CE238EA0051B064 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -203,6 +271,7 @@
 				TargetAttributes = {
 					588AB9092CD3E3D7002E2DEF = {
 						CreatedOnToolsVersion = 16.0;
+						LastSwiftMigration = 1610;
 					};
 					588AB91F2CD3E3D8002E2DEF = {
 						CreatedOnToolsVersion = 16.0;
@@ -269,6 +338,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5885BF6B2CE3B06400365946 /* sc.c in Sources */,
+				5885BF6C2CE3B06400365946 /* sha512.c in Sources */,
+				5885BF6D2CE3B06400365946 /* verify.c in Sources */,
+				5885BF6E2CE3B06400365946 /* fe.c in Sources */,
+				5885BF6F2CE3B06400365946 /* keypair.c in Sources */,
+				5885BF702CE3B06400365946 /* sign.c in Sources */,
+				5885BF712CE3B06400365946 /* key_exchange.c in Sources */,
+				5885BF722CE3B06400365946 /* ge.c in Sources */,
+				5885BF732CE3B06400365946 /* seed.c in Sources */,
+				5885BF742CE3B06400365946 /* add_scalar.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,6 +386,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T7CLECN442;
@@ -321,6 +401,25 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks/ios/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54628/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/winpcap/lib/x64",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54608/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54018/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/boards/rsk_rx65n_2m/smc_gen/r_tsip_rx/lib/iar",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk66/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54s018/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk64/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/devices/s5d9/sce7/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54s018m/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/devices/s7g2/sce7/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk65/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mkv58/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/winpcap/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk60/mmcau/lib",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "distributedlab.kangaroo-ios-client";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -329,7 +428,8 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "kangaroo-ios-client/Ed25519/ed25519bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = Ed25519/ed25519_bridge.h;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -340,6 +440,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T7CLECN442;
@@ -354,6 +455,25 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks/ios/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54628/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/winpcap/lib/x64",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54608/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54018/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/boards/rsk_rx65n_2m/smc_gen/r_tsip_rx/lib/iar",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk66/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54s018/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk64/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/devices/s5d9/sce7/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/lpc54s018m/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/renesas/devices/s7g2/sce7/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk65/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mkv58/mmcau/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/winpcap/lib",
+					"$(PROJECT_DIR)/Frameworks/CycloneTCP_SSL_SSH_IPSEC_EAP_CRYPTO_Open_2_4_4/third_party/nxp/devices/mk60/mmcau/lib",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "distributedlab.kangaroo-ios-client";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -362,7 +482,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "kangaroo-ios-client/Ed25519/ed25519bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = Ed25519/ed25519_bridge.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -406,6 +526,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = ./Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -469,8 +590,10 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = ./Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
