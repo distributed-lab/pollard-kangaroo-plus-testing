@@ -11,7 +11,7 @@ import BigInt
 @testable import kangaroo_ios_client
 
 struct kangaroo_ios_clientTests {
-    private var w: BigInt { .init(integerLiteral: 1024) }
+    private var w: BigUInt { .init(integerLiteral: 1024) }
     private var secretSize: Int { 32 }
 
     @Test func preprocessingRandomValuesGeneration() async throws {
@@ -23,31 +23,37 @@ struct kangaroo_ios_clientTests {
         }
     }
 
-    @Test func retrievePublicKey() async throws {
-        let privateKey = Data(hex: "737415c49909403104e84fe6bcc81a8ce24e1f5e3e2a7621d2ade2da049f3ce0")!
+    /// https://asecuritysite.com/curve25519/ed?n=4
+    @Test func pointAddition() async throws {
+        /// 3 * G
+        let p = BigUInt(
+            "d4b4f5784868c3020403246717ec169ff79e26608ea126a1ab69ee77d1b16712",
+            radix: 16
+        )!
 
-        let publicKey = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: privateKey)
+        /// 2 * G
+        let q = BigUInt(
+            "c9a3f86aae465f0e56513864510f3997561fa2c9e85ea21dc2292309f3cd6022",
+            radix: 16
+        )!
 
-        print(publicKey.hexEncodedString())
+        let r = try Ed25519Wrapper.addPoints(p: p, q: q)
+        let expectedR = "edc876d6831fd2105d0b4389ca2e283166469289146e2ce06faefe98b22548df"
 
-//        assert(
-//            publicKey
-//                .hexEncodedString().lowercased() == "CCF0E1935AA16C127F3077C7B0DB7F8CE8915FFAD007C05028755A39B4805802"
-//                .lowercased()
-//        )
+        assert(expectedR == r.serialize().hexEncodedString())
     }
 
     private func generateSlog(secretSize: Int) -> Data {
-        let zbits = BigInt.random(bits: secretSize - 2)!
-        print("zbits:", zbits.magnitude.serialize().bytes())
+        let zbits = BigUInt.random(bits: secretSize - 2)!
+        print("zbits:", zbits.serialize().bytes())
 
         let limit = zbits / w
         print("limit:", limit.magnitude.serialize().bytes())
 
-        let slog = BigInt.random(limit: limit)
-        print("slog:", slog.magnitude.serialize())
+        let slog = BigUInt.random(limit: limit)
+        print("slog:", slog.serialize())
 
-        let paddedSlog = Kangaroo.KangarooHelpers.padWithZerosEnd(input: slog.magnitude.serialize(), length: 32)
+        let paddedSlog = Kangaroo.KangarooHelpers.padWithZerosEnd(input: slog.serialize(), length: 32)
 
         return paddedSlog
     }

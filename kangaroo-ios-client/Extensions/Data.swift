@@ -26,13 +26,7 @@ extension Data {
 
     func bytes() -> [UInt8] { self.map { $0 } }
 
-    struct HexEncodingOptions: OptionSet {
-         let rawValue: Int
-         static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
-     }
-
-     func hexEncodedString(options: HexEncodingOptions = []) -> String {
-         let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
-         return self.map { String($0, radix: 16) }.joined()
-     }
+    func hexEncodedString() -> String {
+        return self.map { String(format: "%02x", $0) }.joined()
+    }
 }

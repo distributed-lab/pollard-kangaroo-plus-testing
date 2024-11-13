@@ -10,12 +10,12 @@ import BigInt
 import AsyncAlgorithms
 
 fileprivate struct DistinguishedDot {
-    let publicKey: BigInt
-    let privateKey: BigInt
+    let publicKey: BigUInt
+    let privateKey: BigUInt
 }
 
 actor KangarooTableGenerator {
-    private var kangarooTable: Dictionary<BigInt, BigInt> = .init()
+    private var kangarooTable: Dictionary<BigUInt, BigUInt> = .init()
     private var workersCount: Int
     private var taskGroup: Set<Task<Void, Never>> = .init()
     private var processingWorkers: Int = 0
@@ -25,15 +25,15 @@ actor KangarooTableGenerator {
     }
 
     func run(
-        W: BigInt,
+        W: BigUInt,
         n: Int,
         secretSize: Int,
-        distinguishedRule: @escaping (BigInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigInt, BigInt),
-        hashRule: @escaping (BigInt) -> Int,
-        slog: [BigInt],
-        s: [BigInt]
-    ) async -> Dictionary<BigInt, BigInt> {
+        distinguishedRule: @escaping (BigUInt) -> Bool,
+        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        hashRule: @escaping (BigUInt) -> Int,
+        slog: [BigUInt],
+        s: [BigUInt]
+    ) async -> Dictionary<BigUInt, BigUInt> {
         let channel = AsyncChannel<DistinguishedDot?>()
 
         for _ in 0..<workersCount {
@@ -85,12 +85,12 @@ actor KangarooTableGenerator {
     }
 
     private func startWorkerTask(
-        W: BigInt,
-        distinguishedRule: @escaping (BigInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigInt, BigInt),
-        hashRule: @escaping (BigInt) -> Int,
-        slog: [BigInt],
-        s: [BigInt],
+        W: BigUInt,
+        distinguishedRule: @escaping (BigUInt) -> Bool,
+        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        hashRule: @escaping (BigUInt) -> Int,
+        slog: [BigUInt],
+        s: [BigUInt],
         channel: AsyncChannel<DistinguishedDot?>
     ) {
         print("Starting a new worker")
@@ -111,12 +111,12 @@ actor KangarooTableGenerator {
     }
 
     nonisolated private func startWorker(
-        W: BigInt,
-        distinguishedRule: @escaping (BigInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigInt, BigInt),
-        hashRule: @escaping (BigInt) -> Int,
-        slog: [BigInt],
-        s: [BigInt],
+        W: BigUInt,
+        distinguishedRule: @escaping (BigUInt) -> Bool,
+        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        hashRule: @escaping (BigUInt) -> Int,
+        slog: [BigUInt],
+        s: [BigUInt],
         channel: AsyncChannel<DistinguishedDot?>
     ) async {
         var (wlog, w) = keypairGenerationRule()
