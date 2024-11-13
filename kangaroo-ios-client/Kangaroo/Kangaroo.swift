@@ -5,7 +5,6 @@
 //  Created by Yevhenii Serdiukov on 01.11.2024.
 //
 
-import CryptoKit
 import BigInt
 
 /// The ED25519 kangaroo algorithm implementation
@@ -37,7 +36,10 @@ open class Kangaroo {
     /// Generated table after preprocessing stage. There are relation like key: public_key -> value: private_key
     private var table: Dictionary<BigUInt, BigUInt>
 
+    /// Kangaroo table generator
     private var kangarooTableGenerator: KangarooTableGenerator
+
+    private var kangarooDLPSolver: KangarooDLPSolver
 
     init(n: Int, w: BigUInt, secretSize: Int) throws {
         self.n = n
@@ -52,7 +54,8 @@ open class Kangaroo {
         self.table = .init()
 
         // TODO: - Make configurable
-        self.kangarooTableGenerator = .init(workersCount: 1)
+        self.kangarooTableGenerator = .init(workersCount: 4)
+        self.kangarooDLPSolver = .init()
 
         try self.generateRandomValues()
     }
@@ -65,7 +68,13 @@ open class Kangaroo {
                 secretSize: secretSize,
                 distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
                 keypairGenerationRule: { [unowned self] in
-                    let wlog = BigUInt.random(bits: secretSize) ?? 0
+                    let wlogRandomBytes = BigUInt.random(bits: secretSize) ?? 0
+                    let wlogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
+                        input: wlogRandomBytes.serialize(),
+                        length: 32
+                    )
+                    let wlog = BigUInt(wlogZerosPaddedData)
+
                     let w = (try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)) ?? BigUInt()
                     return (wlog, w)
                 },
@@ -75,6 +84,34 @@ open class Kangaroo {
             )
 
         table = generatedTable
+    }
+
+    func solveDLP(publicKey: BigUInt) async throws -> BigUInt {
+        let privateKey = await kangarooDLPSolver
+            .solve(
+                table: table,
+                W: w,
+                pubKey: publicKey,
+                distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
+                keypairGenerationRule: { [unowned self] in
+                    let wdistSecureBytes = BigUInt.random(bits: secretSize) ?? 0
+                    let wlogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
+                        input: wdistSecureBytes.serialize(),
+                        length: 32
+                    )
+                    let wdist = BigUInt(wlogZerosPaddedData)
+                    let q = (try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)) ?? 0
+                    let w = (try? Ed25519Wrapper.addPoints(publicKey, q)) ?? 0
+
+                    return (wdist, w)
+                },
+                hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
+                slog: slog,
+                s: s,
+                workersCount: 4
+            )
+
+        return privateKey
     }
 
     private func hash(pubKey: BigUInt) -> Int {
@@ -87,15 +124,16 @@ open class Kangaroo {
 
     private func generateRandomValues() throws {
         for i in 0..<self.r {
-            let slog = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2) ?? 0 / w)
-            let slogZerosPaddedData = KangarooHelpers.padWithZerosEnd(input: slog.magnitude.serialize(), length: 32)
-            let privateKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: slogZerosPaddedData)
-            let s = BigUInt(privateKey.publicKey.rawRepresentation)
-
-            self.slog.insert(
-                BigUInt(slogZerosPaddedData),
-                at: Int(i)
+            let slogRandomBytes = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2) ?? 0 / w)
+            let slogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
+                input: slogRandomBytes.serialize(),
+                length: 32
             )
+
+            let slog = BigUInt(slogZerosPaddedData)
+            let s = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: slog)
+
+            self.slog.insert(slog, at: Int(i))
             self.s.insert(s, at: Int(i))
         }
     }

@@ -50,7 +50,7 @@ actor KangarooTableGenerator {
         for await value in channel {
             kangarooTable[value.publicKey] = value.privateKey
 
-            logger.info("kangarooTable.count: \(self.kangarooTable.count)")
+            logger.info("Received distinguashed element, current table size: \(self.kangarooTable.count)")
 
             if kangarooTable.count >= n {
                 logger.info("[KangarooTableGenerator] finishing table generation..")
@@ -75,7 +75,7 @@ actor KangarooTableGenerator {
         s: [BigUInt],
         channel: AsyncChannel<DistinguishedDot>
     ) {
-        logger.info("[Worker] started")
+        logger.info("[TableGenerationWorker] started")
 
         let workerTask = Task {
             await startWorker(
@@ -104,23 +104,21 @@ actor KangarooTableGenerator {
         while true {
             var (wlog, w) = keypairGenerationRule()
             if Task.isCancelled {
-                logger.info("[Worker] Stopped")
+                logger.info("[TableGenerationWorker] Stopped")
                 return
             }
 
             for _ in 0..<8*W {
                 if Task.isCancelled {
-                    logger.info("[Worker] Stopped")
+                    logger.info("[TableGenerationWorker] Stopped")
                     return
                 }
 
                 if distinguishedRule(w) {
                     let privateKey = await self.kangarooTable[w]
 
-                    logger.info("\(privateKey ?? BigUInt())")
-
                     if privateKey == nil {
-                        logger.info("[Worker] found distinguashed element")
+                        logger.info("[TableGenerationWorker] found distinguashed element")
 
                         await channel.send(
                             DistinguishedDot(publicKey: w, privateKey: wlog)
@@ -133,17 +131,14 @@ actor KangarooTableGenerator {
                 let wHashed = hashRule(w)
                 wlog = wlog + slog[wHashed]
 
-                w = (try? Ed25519Wrapper.addPoints(w, s[wHashed])) ?? 0
-                logger.info("\(w)")
-//                do {
-//                     }
-//                catch {
-//                    logger.critical("[Worker] find add points failure")
-//                    break
-//                }
+                do { w = try Ed25519Wrapper.addPoints(w, s[wHashed]) }
+                catch {
+                    logger.critical("[TableGenerationWorker] find add points failure, error: \(error.localizedDescription)")
+                    break
+                }
             }
 
-            logger.info("[Worker] no distinguashed element found")
+            logger.info("[TableGenerationWorker] no distinguashed element found")
         }
     }
 }

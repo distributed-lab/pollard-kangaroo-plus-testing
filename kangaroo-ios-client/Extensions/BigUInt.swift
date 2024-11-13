@@ -13,12 +13,15 @@ extension BigUInt {
         guard bits > 0 else { return nil }
         let byteCount = (bits + 7) / 8
         var randomBytes = [UInt8](repeating: 0, count: byteCount)
-        let status = SecRandomCopyBytes(kSecRandomDefault, byteCount, &randomBytes)
-        guard status == errSecSuccess else { return nil }
+
+        for i in 0..<byteCount {
+            randomBytes[i] = UInt8.random(in: 1...UInt8.max)
+        }
+
         return BigUInt(Data(randomBytes))
     }
 
     static func random(limit: BigUInt) -> BigUInt {
-        return (0..<limit).randomElement()!
+        return (1..<limit).randomElement()!
     }
 }
