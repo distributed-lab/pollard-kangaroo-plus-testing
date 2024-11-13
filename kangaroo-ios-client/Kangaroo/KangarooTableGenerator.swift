@@ -18,7 +18,6 @@ actor KangarooTableGenerator {
     private var kangarooTable: Dictionary<BigUInt, BigUInt> = .init()
     private var workersCount: Int
     private var taskGroup: Set<Task<Void, Never>> = .init()
-    private var processingWorkers: Int = 0
 
     init(workersCount: Int) {
         self.workersCount = workersCount
@@ -34,11 +33,9 @@ actor KangarooTableGenerator {
         slog: [BigUInt],
         s: [BigUInt]
     ) async -> Dictionary<BigUInt, BigUInt> {
-        let channel = AsyncChannel<DistinguishedDot?>()
+        let channel = AsyncChannel<DistinguishedDot>()
 
         for _ in 0..<workersCount {
-            processingWorkers += 1
-
             startWorkerTask(
                 W: W,
                 distinguishedRule: distinguishedRule,
@@ -51,35 +48,20 @@ actor KangarooTableGenerator {
         }
 
         for await value in channel {
-            print("Worker found a distinguashed point")
+            kangarooTable[value.publicKey] = value.privateKey
 
-            processingWorkers -= 1
+            logger.info("kangarooTable.count: \(self.kangarooTable.count)")
 
-            if let value = value {
-                kangarooTable[value.publicKey] = value.privateKey
-            }
-
-            if kangarooTable.count < n {
-                processingWorkers += 1
-
-                print("Rerun worker")
-
-                startWorkerTask(
-                    W: W,
-                    distinguishedRule: distinguishedRule,
-                    keypairGenerationRule: keypairGenerationRule,
-                    hashRule: hashRule,
-                    slog: slog,
-                    s: s,
-                    channel: channel
-                )
-            } else {
+            if kangarooTable.count >= n {
+                logger.info("[KangarooTableGenerator] finishing table generation..")
                 channel.finish()
                 taskGroup.forEach { $0.cancel() }
             }
         }
 
-        print("count: ", kangarooTable.count)
+        logger.info(
+            "[KangarooTablegenerator] finished table generation, the table size: \(self.kangarooTable.count)"
+        )
 
         return kangarooTable
     }
@@ -91,9 +73,9 @@ actor KangarooTableGenerator {
         hashRule: @escaping (BigUInt) -> Int,
         slog: [BigUInt],
         s: [BigUInt],
-        channel: AsyncChannel<DistinguishedDot?>
+        channel: AsyncChannel<DistinguishedDot>
     ) {
-        print("Starting a new worker")
+        logger.info("[Worker] started")
 
         let workerTask = Task {
             await startWorker(
@@ -117,40 +99,51 @@ actor KangarooTableGenerator {
         hashRule: @escaping (BigUInt) -> Int,
         slog: [BigUInt],
         s: [BigUInt],
-        channel: AsyncChannel<DistinguishedDot?>
+        channel: AsyncChannel<DistinguishedDot>
     ) async {
-        var (wlog, w) = keypairGenerationRule()
-
-        print(wlog, w)
-
-        for _ in 0..<8*W {
-            if Task.isCancelled { return }
-
-            if distinguishedRule(w) {
-                let privateKey = await self.kangarooTable[w]
-
-                if privateKey == nil {
-                    await channel.send(
-                        DistinguishedDot(publicKey: w, privateKey: wlog)
-                    )
-                }
-
-                print("worker found distinguished")
-
+        while true {
+            var (wlog, w) = keypairGenerationRule()
+            if Task.isCancelled {
+                logger.info("[Worker] Stopped")
                 return
             }
 
-            let wHashed = hashRule(w)
-            wlog = wlog + slog[wHashed]
+            for _ in 0..<8*W {
+                if Task.isCancelled {
+                    logger.info("[Worker] Stopped")
+                    return
+                }
 
-            print(wlog.serialize().count)
-            print("s[h] byte size: ", s[wHashed].serialize().count)
+                if distinguishedRule(w) {
+                    let privateKey = await self.kangarooTable[w]
 
-//            w = Ed25519.shared.addPoints(w, s[wHashed])
+                    logger.info("\(privateKey ?? BigUInt())")
+
+                    if privateKey == nil {
+                        logger.info("[Worker] found distinguashed element")
+
+                        await channel.send(
+                            DistinguishedDot(publicKey: w, privateKey: wlog)
+                        )
+                    }
+
+                    break
+                }
+
+                let wHashed = hashRule(w)
+                wlog = wlog + slog[wHashed]
+
+                w = (try? Ed25519Wrapper.addPoints(w, s[wHashed])) ?? 0
+                logger.info("\(w)")
+//                do {
+//                     }
+//                catch {
+//                    logger.critical("[Worker] find add points failure")
+//                    break
+//                }
+            }
+
+            logger.info("[Worker] no distinguashed element found")
         }
-
-        print("worker does not find distinguished")
-
-        await channel.send(nil)
     }
 }

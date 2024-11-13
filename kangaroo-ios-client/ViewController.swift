@@ -7,13 +7,15 @@
 
 import UIKit
 import BigInt
+import OSLog
+
+let logger = Logger()
 
 class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let kangaroo = try! Kangaroo.init(n: 150, w: BigUInt(integerLiteral: 1024), secretSize: 16)
-
+        let kangaroo = try! Kangaroo.init(n: 10, w: BigUInt(integerLiteral: 1024), secretSize: 16)
 
         Task {
             try await kangaroo.generateTableParalized()

@@ -64,7 +64,11 @@ open class Kangaroo {
                 n: n,
                 secretSize: secretSize,
                 distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
-                keypairGenerationRule: { [unowned self] in (BigUInt(), BigUInt()) },
+                keypairGenerationRule: { [unowned self] in
+                    let wlog = BigUInt.random(bits: secretSize) ?? 0
+                    let w = (try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)) ?? BigUInt()
+                    return (wlog, w)
+                },
                 hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
                 slog: slog,
                 s: s

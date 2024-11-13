@@ -37,7 +37,7 @@ struct kangaroo_ios_clientTests {
             radix: 16
         )!
 
-        let r = try Ed25519Wrapper.addPoints(p: p, q: q)
+        let r = try Ed25519Wrapper.addPoints(p, q)
         let expectedR = "edc876d6831fd2105d0b4389ca2e283166469289146e2ce06faefe98b22548df"
 
         assert(expectedR == r.serialize().hexEncodedString())
