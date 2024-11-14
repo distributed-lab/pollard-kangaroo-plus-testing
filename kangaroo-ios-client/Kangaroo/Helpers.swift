@@ -10,7 +10,7 @@ import Foundation
 
 extension Kangaroo {
     enum KangarooHelpers {
-        static func padWithZerosEnd(input: Data, length: Int) -> Data {
+        static func padWithZerosEnd(input: [UInt8], length: Int) -> [UInt8] {
             var input = input
             if input.count >= length {
                 return input

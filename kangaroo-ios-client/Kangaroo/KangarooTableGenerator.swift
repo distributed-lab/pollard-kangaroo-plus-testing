@@ -108,7 +108,7 @@ actor KangarooTableGenerator {
                 return
             }
 
-            for _ in 0..<8*W {
+            for i in 0..<8*W {
                 if Task.isCancelled {
                     logger.info("[TableGenerationWorker] Stopped")
                     return
@@ -118,7 +118,7 @@ actor KangarooTableGenerator {
                     let privateKey = await self.kangarooTable[w]
 
                     if privateKey == nil {
-                        logger.info("[TableGenerationWorker] found distinguashed element")
+                        logger.info("[TableGenerationWorker] found distinguashed element \(i)")
 
                         await channel.send(
                             DistinguishedDot(publicKey: w, privateKey: wlog)
@@ -128,10 +128,12 @@ actor KangarooTableGenerator {
                     break
                 }
 
-                let wHashed = hashRule(w)
-                wlog = wlog + slog[wHashed]
+                let h = hashRule(w)
+                wlog = wlog + slog[h]
 
-                do { w = try Ed25519Wrapper.addPoints(w, s[wHashed]) }
+                // MARK: Check wlog * G == w + s[h]
+
+                do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
                     logger.critical("[TableGenerationWorker] find add points failure, error: \(error.localizedDescription)")
                     break

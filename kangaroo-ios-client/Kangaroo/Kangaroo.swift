@@ -6,6 +6,7 @@
 //
 
 import BigInt
+import Foundation
 
 /// The ED25519 kangaroo algorithm implementation
 open class Kangaroo {
@@ -54,10 +55,10 @@ open class Kangaroo {
         self.table = .init()
 
         // TODO: - Make configurable
-        self.kangarooTableGenerator = .init(workersCount: 4)
+        self.kangarooTableGenerator = .init(workersCount: 8)
         self.kangarooDLPSolver = .init()
 
-        try self.generateRandomValues()
+        try self.generateKeypairs()
     }
 
     func generateTableParalized() async throws {
@@ -68,14 +69,8 @@ open class Kangaroo {
                 secretSize: secretSize,
                 distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
                 keypairGenerationRule: { [unowned self] in
-                    let wlogRandomBytes = BigUInt.random(bits: secretSize) ?? 0
-                    let wlogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
-                        input: wlogRandomBytes.serialize(),
-                        length: 32
-                    )
-                    let wlog = BigUInt(wlogZerosPaddedData)
-
-                    let w = (try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)) ?? BigUInt()
+                    let wlog = BigUInt.random(bits: secretSize)!
+                    let w = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)
                     return (wlog, w)
                 },
                 hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
@@ -94,15 +89,9 @@ open class Kangaroo {
                 pubKey: publicKey,
                 distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
                 keypairGenerationRule: { [unowned self] in
-                    let wdistSecureBytes = BigUInt.random(bits: secretSize) ?? 0
-                    let wlogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
-                        input: wdistSecureBytes.serialize(),
-                        length: 32
-                    )
-                    let wdist = BigUInt(wlogZerosPaddedData)
-                    let q = (try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)) ?? 0
-                    let w = (try? Ed25519Wrapper.addPoints(publicKey, q)) ?? 0
-
+                    let wdist = BigUInt.random(bits: secretSize - 8)!
+                    let q = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)
+                    let w = try! Ed25519Wrapper.addPoints(publicKey, q)
                     return (wdist, w)
                 },
                 hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
@@ -122,19 +111,14 @@ open class Kangaroo {
         return ((pubKey & (w - 1)) == 0)
     }
 
-    private func generateRandomValues() throws {
+    private func generateKeypairs() throws {
         for i in 0..<self.r {
-            let slogRandomBytes = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2) ?? 0 / w)
-            let slogZerosPaddedData = KangarooHelpers.padWithZerosEnd(
-                input: slogRandomBytes.serialize(),
-                length: 32
-            )
-
-            let slog = BigUInt(slogZerosPaddedData)
+            let slog = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2)! / w)
             let s = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: slog)
 
             self.slog.insert(slog, at: Int(i))
             self.s.insert(s, at: Int(i))
         }
     }
+
 }

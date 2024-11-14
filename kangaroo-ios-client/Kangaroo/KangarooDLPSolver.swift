@@ -19,19 +19,17 @@ actor KangarooDLPSolver {
         let channel = AsyncChannel<BigUInt>()
         self.table = table
 
-        for i in 0..<workersCount {
-            Task {
-                await startWorker(
-                    W: W,
-                    pubKey: pubKey,
-                    distinguishedRule: distinguishedRule,
-                    keypairGenerationRule: keypairGenerationRule,
-                    hashRule: hashRule,
-                    slog: slog,
-                    s: s,
-                    channel: channel
-                )
-            }
+        for _ in 0..<workersCount {
+            startWorkerTask(
+                W: W,
+                pubKey: pubKey,
+                distinguishedRule: distinguishedRule,
+                keypairGenerationRule: keypairGenerationRule,
+                hashRule: hashRule,
+                slog: slog,
+                s: s,
+                channel: channel
+            )
         }
 
         var privateKey = BigUInt()
@@ -91,7 +89,7 @@ actor KangarooDLPSolver {
                 return
             }
 
-            for _ in 0..<W {
+            for _ in 0..<8*W {
                 if Task.isCancelled {
                     logger.info("[DLPSolverWorker] Stopped")
                     return
@@ -101,16 +99,16 @@ actor KangarooDLPSolver {
                     logger.info("[DLPSolverWorker] Find distinguashed element")
 
                     if let privateKey = await table[w] {
-                        logger.info("[DLPSolverWorker] penis")
-                        wdist = privateKey - wdist
+                        wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
                     }
 
                     break
                 }
 
-                let wHashed = hashRule(w)
-                wdist = wdist + slog[wHashed]
-                do { w = try Ed25519Wrapper.addPoints(w, s[wHashed]) }
+                let h = hashRule(w)
+                wdist = wdist + slog[h]
+
+                do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
                     logger.critical("[DLPSolverWorker] find add points failure, error: \(error.localizedDescription)")
                     break
@@ -120,7 +118,6 @@ actor KangarooDLPSolver {
             if let searchedPubKey = try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist), searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker] Found private key")
                 await channel.send(wdist)
-                return
             }
         }
     }
