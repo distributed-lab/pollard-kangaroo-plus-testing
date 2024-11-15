@@ -12,13 +12,13 @@ import OSLog
 let logger = Logger()
 
 class ViewController: UIViewController {
-    private lazy var kangaroo = try! Kangaroo.init(n: 1600, w: BigUInt(integerLiteral: 65536), secretSize: 32)
+    private lazy var kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         let sk = BigUInt("313249263", radix: 10)!
-        let publicKey = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: sk)
+        let publicKey = try! Ed25519Wrapper.pointFromScalarNoclamp(scalar: sk)
 
         Task {
             let time = Date().timeIntervalSince1970

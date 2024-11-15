@@ -65,7 +65,7 @@ open class Kangaroo {
                 distinguishedRule: isDistinguished(pubKey:),
                 keypairGenerationRule: { [unowned self] in
                     let wlog = BigUInt.random(bits: secretSize)
-                    let w = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)
+                    let w = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: wlog)
                     return (wlog, w)
                 },
                 hashRule: hash(pubKey:),
@@ -86,7 +86,7 @@ open class Kangaroo {
                 distinguishedRule: isDistinguished(pubKey:),
                 keypairGenerationRule: { [unowned self] in
                     let wdist = BigUInt.random(bits: secretSize - 8)
-                    let q = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)
+                    let q = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist)
                     let w = try Ed25519Wrapper.addPoints(publicKey, q)
                     return (wdist, w)
                 },
@@ -110,7 +110,7 @@ open class Kangaroo {
     private func generateKeypairs() throws {
         for i in 0..<self.r {
             let slog = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2) / w)
-            let s = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: slog)
+            let s = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: slog)
 
             self.slog.insert(slog, at: Int(i))
             self.s.insert(s, at: Int(i))

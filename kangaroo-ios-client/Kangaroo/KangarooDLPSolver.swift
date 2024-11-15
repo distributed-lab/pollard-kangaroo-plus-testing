@@ -36,9 +36,10 @@ actor KangarooDLPSolver {
         var privateKey = BigUInt()
         for await value in channel {
             logger.info("[KangarooDLPSolver] Received found private key, finishing workers...")
+            privateKey = value
             taskGroup.forEach { $0.cancel() }
             channel.finish()
-            privateKey = value
+            break
         }
 
         return privateKey
@@ -119,9 +120,11 @@ actor KangarooDLPSolver {
                 }
             }
 
-            if let searchedPubKey = try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist), searchedPubKey == pubKey {
+            if let searchedPubKey = try? Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist), searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
                 await channel.send(wdist)
+                logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
+                return
             }
         }
     }

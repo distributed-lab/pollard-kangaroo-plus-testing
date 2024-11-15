@@ -44,7 +44,7 @@ struct kangaroo_ios_clientTests {
         print(scalar.serialize().bytes())
         print(scalar.serialize().bytes().count)
 
-        let basePoint = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: scalar)
+        let basePoint = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: scalar)
 
         let result = Data(basePoint.serialize().reversed()).hexEncodedString()
         let expectedResult = "c9a3f86aae465f0e56513864510f3997561fa2c9e85ea21dc2292309f3cd6022"
@@ -105,9 +105,9 @@ struct kangaroo_ios_clientTests {
         let kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32)
 
         for _ in 0...10000 {
-            let slog = BigUInt.random(limit: BigUInt.random(bits: 32 - 2)! / w)
+            let slog = BigUInt.random(limit: BigUInt.random(bits: 32 - 2) / w)
 
-            let s = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: slog)
+            let s = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: slog)
 
             assert(Ed25519Wrapper.isPointOnCurve(dot: s) == true)
         }

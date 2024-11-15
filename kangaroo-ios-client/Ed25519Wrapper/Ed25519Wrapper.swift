@@ -24,13 +24,13 @@ enum Ed25519WrapperError: LocalizedError {
 }
 
 enum Ed25519Wrapper {
-    static func publicKeyFromPrivateKey(privateKey: BigUInt) throws -> BigUInt {
-        var privateKeyBytes = Array(privateKey.serialize().bytes().reversed())
+    static func pointFromScalarNoclamp(scalar: BigUInt) throws -> BigUInt {
+        var scalarBytes = Array(scalar.serialize().bytes().reversed())
 
-        padEndZerosIfNeeded(elem: &privateKeyBytes)
+        padEndZerosIfNeeded(elem: &scalarBytes)
 
         var q = [UInt8](repeating: 0, count: 32)
-        crypto_scalarmult_ed25519_base_noclamp(&q, privateKeyBytes)
+        crypto_scalarmult_ed25519_base_noclamp(&q, scalarBytes)
 
         if q.count != 32 {
             throw Ed25519WrapperError.invalidPointLenth(length: [q.count])
