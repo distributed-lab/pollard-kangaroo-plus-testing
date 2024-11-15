@@ -12,7 +12,7 @@ import OSLog
 let logger = Logger()
 
 class ViewController: UIViewController {
-    private lazy var kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32)
+    private lazy var kangaroo = try! Kangaroo.init(n: 1600, w: BigUInt(integerLiteral: 65536), secretSize: 32)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,8 +22,8 @@ class ViewController: UIViewController {
 
         Task {
             let time = Date().timeIntervalSince1970
-            try await kangaroo.generateTableParalized()
-            let foundPrivateKey = try await kangaroo.solveDLP(publicKey: publicKey)
+            try await kangaroo.generateTableParalized(workersCount: 6)
+            let foundPrivateKey = try await kangaroo.solveDLP(publicKey: publicKey, workersCount: 6)
             logger.info("Private key was found: \(foundPrivateKey) for: \(Date().timeIntervalSince1970 - time) seconds")
         }
     }

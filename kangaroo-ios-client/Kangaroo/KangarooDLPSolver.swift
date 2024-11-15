@@ -3,14 +3,14 @@ import AsyncAlgorithms
 
 actor KangarooDLPSolver {
     private var table: Dictionary<BigUInt, BigUInt> = .init()
-    private var taskGroup: Set<Task<Void, Never>> = .init()
+    private var taskGroup: Set<Task<(), any Error>> = .init()
 
     func solve(
         table: Dictionary<BigUInt, BigUInt>,
         W: BigUInt,
         pubKey: BigUInt,
         distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
         hashRule: @escaping (BigUInt) -> Int,
         slog: [BigUInt],
         s: [BigUInt],
@@ -19,7 +19,7 @@ actor KangarooDLPSolver {
         let channel = AsyncChannel<BigUInt>()
         self.table = table
 
-        for _ in 0..<workersCount {
+        for i in 0..<workersCount {
             startWorkerTask(
                 W: W,
                 pubKey: pubKey,
@@ -28,7 +28,8 @@ actor KangarooDLPSolver {
                 hashRule: hashRule,
                 slog: slog,
                 s: s,
-                channel: channel
+                channel: channel,
+                workerIndex: i
             )
         }
 
@@ -47,16 +48,17 @@ actor KangarooDLPSolver {
         W: BigUInt,
         pubKey: BigUInt,
         distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
         hashRule: @escaping (BigUInt) -> Int,
         slog: [BigUInt],
         s: [BigUInt],
-        channel: AsyncChannel<BigUInt>
+        channel: AsyncChannel<BigUInt>,
+        workerIndex: Int
     ) {
         logger.info("[DLPSolverWorker] Started")
 
         let workerTask = Task {
-            await startWorker(
+            try await startWorker(
                 W: W,
                 pubKey: pubKey,
                 distinguishedRule: distinguishedRule,
@@ -64,7 +66,8 @@ actor KangarooDLPSolver {
                 hashRule: hashRule,
                 slog: slog,
                 s: s,
-                channel: channel
+                channel: channel,
+                workerIndex: workerIndex
             )
         }
 
@@ -75,28 +78,29 @@ actor KangarooDLPSolver {
         W: BigUInt,
         pubKey: BigUInt,
         distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () -> (BigUInt, BigUInt),
+        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
         hashRule: @escaping (BigUInt) -> Int,
         slog: [BigUInt],
         s: [BigUInt],
-        channel: AsyncChannel<BigUInt>
-    ) async {
+        channel: AsyncChannel<BigUInt>,
+        workerIndex: Int
+    ) async throws {
         while true {
-            var (wdist, w) = keypairGenerationRule()
+            var (wdist, w) = try keypairGenerationRule()
 
             if Task.isCancelled {
-                logger.info("[DLPSolverWorker] Stopped")
+                logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
                 return
             }
 
             for _ in 0..<8*W {
                 if Task.isCancelled {
-                    logger.info("[DLPSolverWorker] Stopped")
+                    logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
                     return
                 }
 
                 if distinguishedRule(w) {
-                    logger.info("[DLPSolverWorker] Find distinguashed element")
+                    logger.info("[DLPSolverWorker \(workerIndex)] Find distinguashed element")
 
                     if let privateKey = await table[w] {
                         wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
@@ -110,13 +114,13 @@ actor KangarooDLPSolver {
 
                 do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
-                    logger.critical("[DLPSolverWorker] find add points failure, error: \(error.localizedDescription)")
+                    logger.critical("[DLPSolverWorker \(workerIndex)] find add points failure, error: \(error.localizedDescription)")
                     break
                 }
             }
 
             if let searchedPubKey = try? Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist), searchedPubKey == pubKey {
-                logger.info("[DLPSolverWorker] Found private key")
+                logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
                 await channel.send(wdist)
             }
         }

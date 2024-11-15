@@ -15,10 +15,7 @@ open class Kangaroo {
     private let n: Int
 
     /// Rounds per generated pub_key
-    private let w: BigUInt // 4096 or 2048
-
-    /// All avaliable private key length with `n` bits. It is calculated like: `2**n`
-    private let l: BigUInt
+    private let w: BigUInt
 
     /// Length of the generated arrays of s and slogs
     private let r: BigUInt
@@ -46,8 +43,6 @@ open class Kangaroo {
         self.n = n
         self.w = w
         self.secretSize = secretSize
-        let initialL = BigUInt(integerLiteral: 2)
-        self.l = initialL.power(secretSize)
         // TODO: - Make configurable
         self.r = 128
         self.slog = []
@@ -55,49 +50,50 @@ open class Kangaroo {
         self.table = .init()
 
         // TODO: - Make configurable
-        self.kangarooTableGenerator = .init(workersCount: 8)
+        self.kangarooTableGenerator = .init()
         self.kangarooDLPSolver = .init()
 
         try self.generateKeypairs()
     }
 
-    func generateTableParalized() async throws {
+    func generateTableParalized(workersCount: Int) async throws {
         let generatedTable = await kangarooTableGenerator
             .run(
                 W: w,
                 n: n,
                 secretSize: secretSize,
-                distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
+                distinguishedRule: isDistinguished(pubKey:),
                 keypairGenerationRule: { [unowned self] in
-                    let wlog = BigUInt.random(bits: secretSize)!
+                    let wlog = BigUInt.random(bits: secretSize)
                     let w = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wlog)
                     return (wlog, w)
                 },
-                hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
+                hashRule: hash(pubKey:),
                 slog: slog,
-                s: s
+                s: s,
+                workersCount: workersCount
             )
 
         table = generatedTable
     }
 
-    func solveDLP(publicKey: BigUInt) async throws -> BigUInt {
+    func solveDLP(publicKey: BigUInt, workersCount: Int) async throws -> BigUInt {
         let privateKey = await kangarooDLPSolver
             .solve(
                 table: table,
                 W: w,
                 pubKey: publicKey,
-                distinguishedRule: { [unowned self] pubKey in self.isDistinguished(pubKey: pubKey) },
+                distinguishedRule: isDistinguished(pubKey:),
                 keypairGenerationRule: { [unowned self] in
-                    let wdist = BigUInt.random(bits: secretSize - 8)!
-                    let q = try! Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)
-                    let w = try! Ed25519Wrapper.addPoints(publicKey, q)
+                    let wdist = BigUInt.random(bits: secretSize - 8)
+                    let q = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: wdist)
+                    let w = try Ed25519Wrapper.addPoints(publicKey, q)
                     return (wdist, w)
                 },
-                hashRule: { [unowned self] pubKey in self.hash(pubKey: pubKey) },
+                hashRule: hash(pubKey:),
                 slog: slog,
                 s: s,
-                workersCount: 4
+                workersCount: workersCount
             )
 
         return privateKey
@@ -113,7 +109,7 @@ open class Kangaroo {
 
     private func generateKeypairs() throws {
         for i in 0..<self.r {
-            let slog = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2)! / w)
+            let slog = BigUInt.random(limit: BigUInt.random(bits: secretSize - 2) / w)
             let s = try Ed25519Wrapper.publicKeyFromPrivateKey(privateKey: slog)
 
             self.slog.insert(slog, at: Int(i))
