@@ -12,7 +12,7 @@ import OSLog
 let logger = Logger()
 
 class ViewController: UIViewController {
-    private lazy var kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32)
+    private lazy var kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32, r: 128)
 
     override func viewDidLoad() {
         super.viewDidLoad()

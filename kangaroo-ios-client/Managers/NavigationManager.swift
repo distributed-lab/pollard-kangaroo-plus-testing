@@ -10,7 +10,11 @@ import SwiftUI
 import UIKit
 
 class NavigationManager: UINavigationController {
-    static var shared: NavigationManager = .init(rootViewController: ViewController())
+    static var shared: NavigationManager = .init(
+        rootViewController: UIHostingController(
+            rootView: KangarooConfigurationScreen()
+        )
+    )
 
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)

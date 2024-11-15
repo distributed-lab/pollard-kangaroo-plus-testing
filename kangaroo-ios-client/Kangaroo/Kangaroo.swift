@@ -39,12 +39,12 @@ open class Kangaroo {
 
     private var kangarooDLPSolver: KangarooDLPSolver
 
-    init(n: Int, w: BigUInt, secretSize: Int) throws {
+    init(n: Int, w: BigUInt, secretSize: Int, r: BigUInt) throws {
         self.n = n
         self.w = w
         self.secretSize = secretSize
         // TODO: - Make configurable
-        self.r = 128
+        self.r = r
         self.slog = []
         self.s = []
         self.table = .init()
