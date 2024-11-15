@@ -77,7 +77,7 @@ open class Kangaroo {
         table = generatedTable
     }
 
-    func solveDLP(publicKey: BigUInt, workersCount: Int) async throws -> BigUInt {
+    func solveDLP(publicKey: BigUInt, workersCount: Int) async throws -> KangarooDLPSolverReport {
         let privateKey = await kangarooDLPSolver
             .solve(
                 table: table,

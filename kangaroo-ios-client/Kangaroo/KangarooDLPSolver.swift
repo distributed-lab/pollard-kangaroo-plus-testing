@@ -1,8 +1,16 @@
 import BigInt
 import AsyncAlgorithms
+import Foundation
+
+struct KangarooDLPSolverReport {
+    let result: BigUInt
+    let statistics: KangarooStatistics
+    let time: TimeInterval
+}
 
 actor KangarooDLPSolver {
     private var table: Dictionary<BigUInt, BigUInt> = .init()
+    private let statistics: KangarooStatistics = KangarooStatistics()
     private var taskGroup: Set<Task<(), any Error>> = .init()
 
     func solve(
@@ -15,9 +23,10 @@ actor KangarooDLPSolver {
         slog: [BigUInt],
         s: [BigUInt],
         workersCount: Int
-    ) async -> BigUInt {
+    ) async -> KangarooDLPSolverReport {
         let channel = AsyncChannel<BigUInt>()
         self.table = table
+        let startTime = Date.now.timeIntervalSince1970
 
         for i in 0..<workersCount {
             startWorkerTask(
@@ -42,7 +51,15 @@ actor KangarooDLPSolver {
             break
         }
 
-        return privateKey
+        let solvingDuration = Date.now.timeIntervalSince1970 - startTime
+
+        let report = KangarooDLPSolverReport(
+            result: privateKey,
+            statistics: statistics,
+            time: solvingDuration
+        )
+
+        return report
     }
 
     private func startWorkerTask(
@@ -88,6 +105,8 @@ actor KangarooDLPSolver {
     ) async throws {
         while true {
             var (wdist, w) = try keypairGenerationRule()
+            await statistics.trackOpEd25519ScalarMul()
+            await statistics.trackOpEd25519AddPointsCount()
 
             if Task.isCancelled {
                 logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
@@ -105,6 +124,7 @@ actor KangarooDLPSolver {
 
                     if let privateKey = await table[w] {
                         wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
+                        await statistics.trackOpEd25519ScalarSub()
                     }
 
                     break
@@ -112,6 +132,7 @@ actor KangarooDLPSolver {
 
                 let h = hashRule(w)
                 wdist = Ed25519Wrapper.scalarAdd(wdist, slog[h])
+                await statistics.trackOpEd25519ScalarAdd()
 
                 do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
@@ -120,6 +141,7 @@ actor KangarooDLPSolver {
                 }
             }
 
+            await statistics.trackOpEd25519ScalarMul()
             if let searchedPubKey = try? Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist), searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
                 await channel.send(wdist)

@@ -23,8 +23,13 @@ class ViewController: UIViewController {
         Task {
             let time = Date().timeIntervalSince1970
             try await kangaroo.generateTableParalized(workersCount: 6)
-            let foundPrivateKey = try await kangaroo.solveDLP(publicKey: publicKey, workersCount: 6)
-            logger.info("Private key was found: \(foundPrivateKey) for: \(Date().timeIntervalSince1970 - time) seconds")
+            let report = try await kangaroo.solveDLP(publicKey: publicKey, workersCount: 6)
+            logger
+                .info(
+                    "Private key was found: \(report.result) for: \(Date().timeIntervalSince1970 - time) seconds"
+                )
+            print(report.statistics)
+            print("time duration: \(report.time) seconds")
         }
     }
 }
