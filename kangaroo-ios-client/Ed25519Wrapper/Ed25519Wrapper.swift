@@ -56,6 +56,19 @@ enum Ed25519Wrapper {
         return BigUInt(Data(zBytes.reversed()))
     }
 
+    static func scalarAdd(_ x: BigUInt, _ y: BigUInt) -> BigUInt {
+        var xBytes = Array(x.serialize().bytes().reversed())
+        var yBytes = Array(y.serialize().bytes().reversed())
+
+        padEndZerosIfNeeded(elem: &xBytes)
+        padEndZerosIfNeeded(elem: &yBytes)
+
+        var zBytes = [UInt8](repeating: 0, count: 32)
+        crypto_core_ed25519_scalar_add(&zBytes, xBytes, yBytes)
+
+        return BigUInt(Data(zBytes.reversed()))
+    }
+
     static func isPointOnCurve(dot: BigUInt) -> Bool {
         var dotBytes = Array(dot.serialize().bytes().reversed())
         padEndZerosIfNeeded(elem: &dotBytes)

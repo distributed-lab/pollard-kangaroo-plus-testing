@@ -111,7 +111,7 @@ actor KangarooDLPSolver {
                 }
 
                 let h = hashRule(w)
-                wdist = wdist + slog[h]
+                wdist = Ed25519Wrapper.scalarAdd(wdist, slog[h])
 
                 do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {

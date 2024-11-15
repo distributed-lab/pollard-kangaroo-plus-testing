@@ -129,7 +129,7 @@ actor KangarooTableGenerator {
                 }
 
                 let h = hashRule(w)
-                wlog = wlog + slog[h]
+                wlog = Ed25519Wrapper.scalarAdd(wlog, slog[h])
 
                 do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
