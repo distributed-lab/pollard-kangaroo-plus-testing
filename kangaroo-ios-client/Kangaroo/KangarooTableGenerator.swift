@@ -10,25 +10,25 @@ import BigInt
 import AsyncAlgorithms
 
 fileprivate struct DistinguishedDot {
-    let publicKey: BigUInt
-    let privateKey: BigUInt
+    let publicKey: String
+    let privateKey: String
 }
 
 actor KangarooTableGenerator {
-    private var kangarooTable: Dictionary<BigUInt, BigUInt> = .init()
+    private var kangarooTable: Dictionary<String, String> = .init()
     private var taskGroup: Set<Task<(), any Error>> = .init()
 
     func run(
         W: BigUInt,
         n: Int,
         secretSize: Int,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
         workersCount: Int
-    ) async -> Dictionary<BigUInt, BigUInt> {
+    ) async -> Dictionary<String, String> {
         let channel = AsyncChannel<DistinguishedDot>()
 
         for i in 0..<workersCount {
@@ -65,11 +65,11 @@ actor KangarooTableGenerator {
 
     private func startWorkerTask(
         W: BigUInt,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
         channel: AsyncChannel<DistinguishedDot>,
         workerIndex: Int
     ) {
@@ -93,11 +93,11 @@ actor KangarooTableGenerator {
 
     nonisolated private func startWorker(
         W: BigUInt,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
         channel: AsyncChannel<DistinguishedDot>,
         workerIndex: Int
     ) async throws {
@@ -129,9 +129,11 @@ actor KangarooTableGenerator {
                 }
 
                 let h = hashRule(w)
-                wlog = Ed25519Wrapper.scalarAdd(wlog, slog[h])
+                wlog = try Ed25519.scalarAdd(wlog, slog[h])
 
-                do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
+                do {
+                    w = try Ed25519.addPoints(w, s[h])
+                }
                 catch {
                     logger.critical("[TableGenerationWorker \(workerIndex)] find add points failure, error: \(error.localizedDescription)")
                     break

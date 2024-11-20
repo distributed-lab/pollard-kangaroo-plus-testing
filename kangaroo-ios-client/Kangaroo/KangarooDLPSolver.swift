@@ -3,28 +3,27 @@ import AsyncAlgorithms
 import Foundation
 
 struct KangarooDLPSolverReport {
-    let result: BigUInt
+    let result: String
     let statistics: KangarooStatistics
     let time: TimeInterval
 }
 
 actor KangarooDLPSolver {
-//    private var table: Dictionary<BigUInt, BigUInt> = .init()
     private let statistics: KangarooStatistics = KangarooStatistics()
     private var taskGroup: Set<Task<(), any Error>> = .init()
 
     func solve(
-        table: Dictionary<BigUInt, BigUInt>,
+        table: Dictionary<String, String>,
         W: BigUInt,
-        pubKey: BigUInt,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
+        pubKey: String,
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
         workersCount: Int
     ) async -> KangarooDLPSolverReport {
-        let channel = AsyncChannel<BigUInt>()
+        let channel = AsyncChannel<String>()
         let startTime = Date.now.timeIntervalSince1970
 
         for i in 0..<workersCount {
@@ -42,7 +41,7 @@ actor KangarooDLPSolver {
             )
         }
 
-        var privateKey = BigUInt()
+        var privateKey = String()
         for await value in channel {
             logger.info("[KangarooDLPSolver] Received found private key, finishing workers...")
             privateKey = value
@@ -64,14 +63,14 @@ actor KangarooDLPSolver {
 
     private func startWorkerTask(
         W: BigUInt,
-        pubKey: BigUInt,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
-        channel: AsyncChannel<BigUInt>,
-        table: Dictionary<BigUInt, BigUInt>,
+        pubKey: String,
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
+        channel: AsyncChannel<String>,
+        table: Dictionary<String, String>,
         workerIndex: Int
     ) {
         logger.info("[DLPSolverWorker] Started")
@@ -96,15 +95,14 @@ actor KangarooDLPSolver {
 
     nonisolated private func startWorker(
         W: BigUInt,
-        pubKey: BigUInt,
-        distinguishedRule: @escaping (BigUInt) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (BigUInt, BigUInt),
-        hashRule: @escaping (BigUInt) -> Int,
-        slog: [BigUInt],
-        s: [BigUInt],
-        channel: AsyncChannel<BigUInt>,
-        table: Dictionary<BigUInt, BigUInt>,
-        workerIndex: Int
+        pubKey: String,
+        distinguishedRule: @escaping (String) -> Bool,
+        keypairGenerationRule: @escaping () throws -> (String, String),
+        hashRule: @escaping (String) -> Int,
+        slog: [String],
+        s: [String],
+        channel: AsyncChannel<String>,
+        table: Dictionary<String, String>,        workerIndex: Int
     ) async throws {
         while true {
             var (wdist, w) = try keypairGenerationRule()
@@ -126,14 +124,8 @@ actor KangarooDLPSolver {
                     logger.info("[DLPSolverWorker \(workerIndex)] Find distinguashed element")
 
                     if let privateKey = table[w] {
-                        wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
-//                        await statistics.trackOpEd25519ScalarSub()
-                    }
-
-                    let reversedW = Kangaroo.KangarooHelpers.reverseBytes(w, count: 32)
-                    if let privateKey = table[reversedW] {
-                        wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
-//                        await statistics.trackOpEd25519ScalarSub()
+                        wdist = try Ed25519.scalarSub(privateKey, wdist)
+                        await statistics.trackOpEd25519ScalarSub()
                     }
 
                     break
@@ -141,10 +133,12 @@ actor KangarooDLPSolver {
 
                 let h = hashRule(w)
 
-                wdist = Ed25519Wrapper.scalarAdd(wdist, slog[h])
+                wdist = try Ed25519.scalarAdd(wdist, slog[h])
 //                await statistics.trackOpEd25519ScalarAdd()
 
-                do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
+                do {
+                    w = try Ed25519.addPoints(w, s[h])
+                }
                 catch {
                     logger.critical("[DLPSolverWorker \(workerIndex)] find add points failure, error: \(error.localizedDescription)")
                     break
@@ -152,7 +146,8 @@ actor KangarooDLPSolver {
             }
 
 //            await statistics.trackOpEd25519ScalarMul()
-            if let searchedPubKey = try? Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist), searchedPubKey == pubKey {
+            let searchedPubKey = try Ed25519.pointFromScalarNoclamp(wdist)
+            if searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
                 await channel.send(wdist)
                 logger.info("[DLPSolverWorker \(workerIndex)] Stopped")

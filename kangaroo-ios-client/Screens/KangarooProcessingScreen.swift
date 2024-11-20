@@ -51,22 +51,22 @@ class KangarooProcessingScreenViewModel: ObservableObject {
             processing()
         }
 
-        Task { @MainActor in
-            let publicKey = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: privateKey)
-
-            try await kangaroo?.generateTableParalized(
-                workersCount: generateTableWorkersCount
-            )
-
-            let report = try await kangaroo?.solveDLP(
-                publicKey: publicKey,
-                workersCount: solveDLPWorkersCount
-            )
-
-            self.report = report
-
-            showProcessing = false
-        }
+//        Task { @MainActor in
+//            let publicKey = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: privateKey)
+//
+//            try await kangaroo?.generateTableParalized(
+//                workersCount: generateTableWorkersCount
+//            )
+//
+//            let report = try await kangaroo?.solveDLP(
+//                publicKey: publicKey,
+//                workersCount: solveDLPWorkersCount
+//            )
+//
+//            self.report = report
+//
+//            showProcessing = false
+//        }
     }
 }
 

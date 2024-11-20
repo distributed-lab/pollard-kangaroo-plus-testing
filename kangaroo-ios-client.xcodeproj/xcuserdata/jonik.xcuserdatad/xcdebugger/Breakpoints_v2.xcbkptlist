@@ -78,8 +78,8 @@
             filePath = "kangaroo-ios-client/Kangaroo/KangarooDLPSolver.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "126"
-            endingLineNumber = "126"
+            startingLineNumber = "124"
+            endingLineNumber = "124"
             landmarkName = "startWorker(W:pubKey:distinguishedRule:keypairGenerationRule:hashRule:slog:s:channel:table:workerIndex:)"
             landmarkType = "7">
          </BreakpointContent>
