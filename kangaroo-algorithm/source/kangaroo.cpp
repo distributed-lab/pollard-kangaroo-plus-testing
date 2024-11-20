@@ -69,6 +69,7 @@ unsigned char* convertToByteArray(const mpz_class& num) {
     std::memcpy(buffer + (32 - count), tempBuffer, count);
 
     mpz_clear(temp);
+//    delete [] tempBuffer;
     return buffer;
 }
 
@@ -116,22 +117,22 @@ void KangarooAlgorithm::init_s() {
 }
 
 void KangarooAlgorithm::parallel_loop_map(std::unordered_map<std::string, long long>& distinguishedCounter,
-                                      int& tabledone, gmp_randclass& ra, int i, int W,
-                                      unsigned char** slog, unsigned char** s, int thread_num) {
-    int return_counter = 0;
-    int target_count = 10;
-
+                                          int& tabledone, gmp_randclass& ra, int i, int W,
+                                          unsigned char** slog, unsigned char** s, int thread_num) {
     std::cout << "running #" << thread_num << "\n";
     long long numsteps = 0;
     while (tabledone < N) {
-        auto wlog = new unsigned char [32];
-        auto w = new unsigned char [32];
+        auto wlog = new unsigned char [2000];
+
+        auto w = new unsigned char [2000];
 
         mpz_class wlog_mpz = ra.get_z_bits(this->secret_size);
         wlog = convertToByteArray(wlog_mpz);
+
         std::reverse(wlog, wlog+32);
 
         crypto_scalarmult_ed25519_base_noclamp(w, wlog);
+
         mpz_class w_mpz = convertToMpzClass(w);
 
         for (int loop = 0;loop < 8*W;++loop) {
@@ -141,10 +142,6 @@ void KangarooAlgorithm::parallel_loop_map(std::unordered_map<std::string, long l
                 mut.unlock();
 
                 if (distEntry.log == 0) {
-
-                    auto wtest = new unsigned char [32];
-                    crypto_scalarmult_ed25519_base_noclamp(wtest, wlog);
-
                     tableMap.tableMap[w_mpz.get_str(16)] = TableEntryMap{wlog_mpz};
 
                     std::cout << "tabledone: " << tabledone << "/" << N << std::endl;
@@ -156,41 +153,32 @@ void KangarooAlgorithm::parallel_loop_map(std::unordered_map<std::string, long l
             }
 
             unsigned char* w_base = new unsigned char[32];
-            crypto_scalarmult_ed25519_base_noclamp(w_base, convertToByteArray(wlog_mpz));
+            auto wlog_conv = convertToByteArray(wlog_mpz);
+            crypto_scalarmult_ed25519_base_noclamp(w_base, wlog_conv);
+            delete [] wlog_conv;
 
             int h = hash(w_mpz);
-//            std::cout << w_mpz.get_str(16) << "\n";
-//            std::cout << h << "\n";
-
-//            std::cout << toHexString(slog[h]) << "\n";
-//            std::cout << convertToMpzClass(slog[h]).get_str(16) << "\n";
-
             wlog_mpz = wlog_mpz + convertToMpzClass(slog[h]);
 
-            auto w_add = new unsigned char [32];
-            crypto_core_ed25519_add(w_add, w, s[h]);
+            crypto_core_ed25519_add(w, w, s[h]);
 
-            w = w_add;
             w_mpz = convertToMpzClass(w);
 
-            unsigned char* w_test = new unsigned char [32];
 
-            wlog = convertToByteArray(wlog_mpz);
+            auto wlog_bytes_conv = convertToByteArray(wlog_mpz);
+            for (int i = 0; i < 32; i++) {
+                wlog[i] = wlog_bytes_conv[i];
+            }
+
+            delete []wlog_bytes_conv;
+
             std::reverse(wlog, wlog + 32);
-
-            crypto_scalarmult_ed25519_base_noclamp(w_test, wlog);
-//            std::cout << toHexString(w_test) << "\n";
-//            std::cout << toHexString(w) << "\n";
+            delete [] w_base;
             ++numsteps;
-
-            ++return_counter;
-
-//            std::cout << convertToMpzClass(w).get_str(16) << "\n";
-
-//            if (return_counter == target_count) {
-//                return;
-//            }
         }
+
+        delete [] w;
+        delete [] wlog;
     }
 }
 
@@ -210,9 +198,9 @@ void KangarooAlgorithm::write_table_json(){
     json table;
     for (const auto& pair : tableMap.tableMap) {
         table.push_back({
-            {"point", pair.first},
-            {"value", pair.second.log.get_str(16)}
-        });
+                                {"point", pair.first},
+                                {"value", pair.second.log.get_str(16)}
+                        });
     }
 
     json j = {
@@ -279,9 +267,6 @@ void KangarooAlgorithm::solve_dlp_map_parallel_function(mpz_class h, MainResult&
 
         for (int loop = 0;loop < 8*W;++loop) {
             if (distinguished(w_mpz)) {
-//                std::cout << w_mpz.get_str(16) + "\n";
-
-
                 mut.lock();
                 auto mapEntry = tableMap.tableMap[w_mpz.get_str(16)];
                 mut.unlock();
@@ -316,13 +301,10 @@ void KangarooAlgorithm::solve_dlp_map_parallel_function(mpz_class h, MainResult&
             std::reverse(wlog, wlog + 32);
 
             crypto_scalarmult_ed25519_base_noclamp(w_test, wlog);
-//            std::cout << toHexString(w_test) << "\n";
-//            std::cout << toHexString(w) << "\n";
             ++numsteps;
         }
 
         std::cout << "checking\n";
-//        std::cout << wlog_mpz.get_str();
 
         unsigned char* res = new unsigned char [32];
         crypto_scalarmult_ed25519_base_noclamp(res, convertToByteArray(wlog_mpz));
@@ -332,12 +314,6 @@ void KangarooAlgorithm::solve_dlp_map_parallel_function(mpz_class h, MainResult&
             auto is_loaded = stopFlag.load();
 
             std::cout<<"found\n" ;
-//        if (!is_loaded) {
-//            mut.lock();
-//            final_result = MainResult(numsteps, wdist, loop);
-//            stopFlag.store(true);
-//            mut.unlock();
-//        }
             return;
         }
     }

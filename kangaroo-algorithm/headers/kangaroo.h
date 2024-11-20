@@ -59,8 +59,8 @@ public:
     PreprocessingResult generate_table_parallel_map();
 
     void parallel_loop_map(std::unordered_map<std::string, long long>& distinguishedCounter,
-                       int& tabledone, gmp_randclass& ra, int i, int W,
-                       unsigned char** slog, unsigned char** s, int thread_num);
+                           int& tabledone, gmp_randclass& ra, int i, int W,
+                           unsigned char** slog, unsigned char** s, int thread_num);
 
     void write_table_json();
     void solve_dlp_map_parallel_function( mpz_class h, MainResult& final_result, std::atomic<bool>& stopFlag, gmp_randclass& ra, int j) ;
