@@ -52,6 +52,37 @@ struct kangaroo_ios_clientTests {
         assert(expectedResult == result)
     }
 
+//    @Test func test() async throws {
+//        let scalar = BigUInt("269a9", radix: 16)!
+//        let basePoint = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: scalar)
+//
+//        let result = Data(basePoint.serialize().reversed()).hexEncodedString()
+//        let expectedPubKey = "c4e12029ef5e4d2d39a216bb16a9e7cf45587696bbd078b8eb6d3a82cc7c193d"
+//
+//        assert(result == expectedPubKey)
+//
+//        let pubKey = BigUInt("2bc4aabb812c744652bd89820f1869171b05f824c43825d40ed8c5abc9fe5d6a", radix: 16)!
+//        print("penis",pubKey)
+//
+//        assert(basePoint.serialize().bytes() == reversedPubKeyBytes)
+//    }
+
+    @Test func outputTest() async throws {
+        let scalar = BigUInt("b4333fee", radix: 16)!
+        let rawPk = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: scalar)
+        let result = Data(rawPk.serialize().reversed()).hexEncodedString()
+
+        print(rawPk.serialize().count)
+
+        let expectedPk = BigUInt("b4e635be6264a7ffd41598d9175835bc695da844c9c563beed23f9d7f9088000", radix: 16)!
+
+        print(rawPk.serialize().bytes())
+        print(Array(expectedPk.serialize().bytes().reversed()))
+
+        assert(rawPk.serialize().bytes() == Array(expectedPk.serialize().bytes().reversed()))
+    }
+
+
     @Test func coreScalarTest() async throws {
         for _ in 0...1000 {
             var bytes = [UInt8].init(repeating: 0, count: 32)
@@ -102,7 +133,7 @@ struct kangaroo_ios_clientTests {
     }
 
     @Test func testRandomValueGeneration() async throws {
-        let kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32)
+        let kangaroo = try! Kangaroo.init(n: 400, w: BigUInt(integerLiteral: 63572), secretSize: 32, r: 128)
 
         for _ in 0...10000 {
             let slog = BigUInt.random(limit: BigUInt.random(bits: 32 - 2) / w)

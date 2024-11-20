@@ -137,8 +137,6 @@ actor KangarooTableGenerator {
                     break
                 }
             }
-
-            logger.info("[TableGenerationWorker \(workerIndex)] no distinguashed element found")
         }
     }
 }

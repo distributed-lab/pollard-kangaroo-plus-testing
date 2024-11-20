@@ -28,12 +28,12 @@ class KangarooStatistics: CustomStringConvertible {
     }
 
     var description: String {
-    """
-    Statistics: 
-    opEd25519AddPoints: \(opEd25519AddPoints)
-    opEd25519ScalarMul: \(opEd25519ScalarMul) 
-    opEd25519ScalarAdd: \(opEd25519ScalarAdd) 
-    opEd25519ScalarSub: \(opEd25519ScalarSub) 
-    """
+        """
+        Statistics: 
+        opEd25519AddPoints: \(opEd25519AddPoints)
+        opEd25519ScalarMul: \(opEd25519ScalarMul) 
+        opEd25519ScalarAdd: \(opEd25519ScalarAdd) 
+        opEd25519ScalarSub: \(opEd25519ScalarSub) 
+        """
     }
 }

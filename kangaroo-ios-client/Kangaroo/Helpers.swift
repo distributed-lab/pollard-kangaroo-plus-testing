@@ -18,7 +18,6 @@ extension Kangaroo {
 
             let zerosPadding = Array<UInt8>.init(repeating: UInt8(0), count: length - input.count)
             input.append(contentsOf: zerosPadding)
-
             return input
         }
 
@@ -27,6 +26,16 @@ extension Kangaroo {
                 return input
             }
             return String(repeating: "0", count: length - input.count) + input
+        }
+
+        static func reverseBytes(_ value: BigUInt, count: Int = 0) -> BigUInt {
+            var reversedBytes = Array(value.serialize().bytes().reversed())
+
+            while reversedBytes.count < count {
+                reversedBytes.append(0)
+            }
+
+            return BigUInt(Data(reversedBytes))
         }
     }
 }

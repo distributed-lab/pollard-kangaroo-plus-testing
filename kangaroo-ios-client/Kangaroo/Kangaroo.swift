@@ -8,6 +8,11 @@
 import BigInt
 import Foundation
 
+private let wIndex = 1
+private let nIndex = 2
+private let secretSizeIndex = 3
+private let rIndex = 4
+
 /// The ED25519 kangaroo algorithm implementation
 open class Kangaroo {
     /// Table size after the preprocessing stage (amount of the key values which satisfy some specific rule)
@@ -56,6 +61,54 @@ open class Kangaroo {
         try self.generateKeypairs()
     }
 
+    init(outputFileName: String) throws {
+        let fileURL = Bundle.main.url(forResource: outputFileName, withExtension: "json")!
+        let parameters = fileURL.relativePath.split(separator: "_").map { String($0) }
+        let jsonData = try! Data(contentsOf: fileURL)
+        let dictionary = (try JSONSerialization.jsonObject(with: jsonData)) as? [String: Any] ?? [:]
+
+        self.table = .init()
+        self.kangarooTableGenerator = .init()
+        self.kangarooDLPSolver = .init()
+        self.w = BigUInt(parameters[wIndex], radix: 10)!
+        self.n = Int(parameters[nIndex], radix: 10)!
+        self.secretSize = Int(parameters[secretSizeIndex], radix: 10)!
+        self.r = BigUInt(parameters[rIndex].split(separator: ".")[0], radix: 10)!
+
+        self.s = (dictionary["s"] as! [String]).map {
+            let value = BigUInt($0, radix: 16)!
+            return KangarooHelpers.reverseBytes(value, count: 32)
+        }
+
+        self.slog = (dictionary["slog"] as! [String]).map {
+            let value = BigUInt($0, radix: 16)!
+            return value
+        }
+
+        (dictionary["table"] as! [[String: String]]).forEach { [unowned self] in
+            let key = BigUInt($0["point"]!, radix: 16)!
+            let value = BigUInt($0["value"]!, radix: 16)!
+            let bigEndianKey = KangarooHelpers.reverseBytes(key, count: 32)
+
+            print(bigEndianKey.serialize().bytes())
+
+            table[bigEndianKey] = value
+        }
+
+//        table.keys.forEach {
+//            print($0.serialize().count)
+//        }
+//
+//
+//        print("r:", r)
+//        print("secretSize:", secretSize)
+//        print("n:", n)
+//        print("w:", w)
+//        print("slog:", slog)
+//        print("s:", s)
+//        print("table:", table)
+    }
+
     func generateTableParalized(workersCount: Int) async throws {
         let generatedTable = await kangarooTableGenerator
             .run(
@@ -86,6 +139,7 @@ open class Kangaroo {
                 distinguishedRule: isDistinguished(pubKey:),
                 keypairGenerationRule: { [unowned self] in
                     let wdist = BigUInt.random(bits: secretSize - 8)
+//                    let wdist = BigUInt("e4eae8", radix: 16)!
                     let q = try Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist)
                     let w = try Ed25519Wrapper.addPoints(publicKey, q)
                     return (wdist, w)
@@ -100,10 +154,13 @@ open class Kangaroo {
     }
 
     private func hash(pubKey: BigUInt) -> Int {
-        return Int(pubKey & (self.r - 1))
+        let reversed = BigUInt(Data(pubKey.serialize().reversed()))
+        return Int(reversed & (self.r - 1))
     }
 
     private func isDistinguished(pubKey: BigUInt) -> Bool {
+//        let reversed = BigUInt(Data(pubKey.serialize().reversed()))
+//        return ((reversed & (w - 1)) == 0)
         return ((pubKey & (w - 1)) == 0)
     }
 

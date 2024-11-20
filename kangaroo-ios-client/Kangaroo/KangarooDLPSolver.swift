@@ -9,7 +9,7 @@ struct KangarooDLPSolverReport {
 }
 
 actor KangarooDLPSolver {
-    private var table: Dictionary<BigUInt, BigUInt> = .init()
+//    private var table: Dictionary<BigUInt, BigUInt> = .init()
     private let statistics: KangarooStatistics = KangarooStatistics()
     private var taskGroup: Set<Task<(), any Error>> = .init()
 
@@ -25,7 +25,6 @@ actor KangarooDLPSolver {
         workersCount: Int
     ) async -> KangarooDLPSolverReport {
         let channel = AsyncChannel<BigUInt>()
-        self.table = table
         let startTime = Date.now.timeIntervalSince1970
 
         for i in 0..<workersCount {
@@ -38,6 +37,7 @@ actor KangarooDLPSolver {
                 slog: slog,
                 s: s,
                 channel: channel,
+                table: table,
                 workerIndex: i
             )
         }
@@ -71,6 +71,7 @@ actor KangarooDLPSolver {
         slog: [BigUInt],
         s: [BigUInt],
         channel: AsyncChannel<BigUInt>,
+        table: Dictionary<BigUInt, BigUInt>,
         workerIndex: Int
     ) {
         logger.info("[DLPSolverWorker] Started")
@@ -85,6 +86,7 @@ actor KangarooDLPSolver {
                 slog: slog,
                 s: s,
                 channel: channel,
+                table: table,
                 workerIndex: workerIndex
             )
         }
@@ -101,12 +103,13 @@ actor KangarooDLPSolver {
         slog: [BigUInt],
         s: [BigUInt],
         channel: AsyncChannel<BigUInt>,
+        table: Dictionary<BigUInt, BigUInt>,
         workerIndex: Int
     ) async throws {
         while true {
             var (wdist, w) = try keypairGenerationRule()
-            await statistics.trackOpEd25519ScalarMul()
-            await statistics.trackOpEd25519AddPointsCount()
+//            await statistics.trackOpEd25519ScalarMul()
+//            await statistics.trackOpEd25519AddPointsCount()
 
             if Task.isCancelled {
                 logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
@@ -122,17 +125,24 @@ actor KangarooDLPSolver {
                 if distinguishedRule(w) {
                     logger.info("[DLPSolverWorker \(workerIndex)] Find distinguashed element")
 
-                    if let privateKey = await table[w] {
+                    if let privateKey = table[w] {
                         wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
-                        await statistics.trackOpEd25519ScalarSub()
+//                        await statistics.trackOpEd25519ScalarSub()
+                    }
+
+                    let reversedW = Kangaroo.KangarooHelpers.reverseBytes(w, count: 32)
+                    if let privateKey = table[reversedW] {
+                        wdist = Ed25519Wrapper.scalarSub(privateKey, wdist)
+//                        await statistics.trackOpEd25519ScalarSub()
                     }
 
                     break
                 }
 
                 let h = hashRule(w)
+
                 wdist = Ed25519Wrapper.scalarAdd(wdist, slog[h])
-                await statistics.trackOpEd25519ScalarAdd()
+//                await statistics.trackOpEd25519ScalarAdd()
 
                 do { w = try Ed25519Wrapper.addPoints(w, s[h]) }
                 catch {
@@ -141,7 +151,7 @@ actor KangarooDLPSolver {
                 }
             }
 
-            await statistics.trackOpEd25519ScalarMul()
+//            await statistics.trackOpEd25519ScalarMul()
             if let searchedPubKey = try? Ed25519Wrapper.pointFromScalarNoclamp(scalar: wdist), searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
                 await channel.send(wdist)

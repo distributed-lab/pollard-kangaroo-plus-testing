@@ -18,8 +18,6 @@ class NavigationManager: UINavigationController {
 
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
-        navigationBar.tintColor = .label
-        navigationBar.isHidden = true
     }
 
     @available(*, unavailable)
