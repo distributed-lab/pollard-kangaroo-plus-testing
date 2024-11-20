@@ -1,13 +1,15 @@
+import { ExtPointType } from '@noble/curves/abstract/edwards';
+import { ed25519 } from '@noble/curves/ed25519';
 import { log } from 'console';
 import * as fs from 'fs';
 
 export class TableMap{
-    s: bigint[];
+    s: ExtPointType[];
     slog: bigint[];
     table: Map<bigint, bigint>
 
     constructor() {
-        this.s = new Array<bigint>
+        this.s = new Array<ExtPointType>
         this.slog = new Array<bigint>
         this.table = new Map<bigint, bigint>
     }
@@ -44,7 +46,7 @@ export class TableMap{
 
             // Write the size of the map
             const mapSize = this.table.size;
-            const sizeBuffer = Buffer.alloc(8); // Assuming 64-bit size
+            const sizeBuffer = Buffer.alloc(8); 
             sizeBuffer.writeBigUInt64LE(BigInt(mapSize));
             fs.writeSync(outFile, sizeBuffer);
 
@@ -112,10 +114,10 @@ export class TableMap{
     }    
 
     // Method to serialize the TableMap to JSON format
-    writeJson(w: bigint, n: number, secretSize: number): string {
+    writeJson(w: bigint, n: number, secretSize: number, r: bigint): string {
         return JSON.stringify({
-            file_name: `output_${w.toString()}_${n}_${secretSize}.json`,
-            s: this.s.map(value => value.toString(16)),
+            file_name: `output.json`, //_${w.toString()}_${n}_${secretSize}_${r.toString(10)}
+            s: this.s.map(value => value.toHex()),
             slog: this.slog.map(value => value.toString(16)),
             table: Array.from(this.table.entries()).map(([key, value]) => ({
                 point: key.toString(16),
@@ -128,7 +130,7 @@ export class TableMap{
     readJson(jsonString: string) {
         const parsedData = JSON.parse(jsonString);
 
-        const s = parsedData.s.map((value: string) => BigInt('0x' + value));
+        const s = parsedData.s.map((value: string) => ed25519.ExtendedPoint.fromHex(value));
         const slog = parsedData.slog.map((value: string) => BigInt('0x' + value));
         const table = new Map<bigint, bigint>(
             parsedData.table.map((entry: { point: string; value: string }) => [

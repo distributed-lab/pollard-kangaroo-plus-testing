@@ -17,7 +17,7 @@ To run the server go to the `table-server` and run the next command:
 go run main.go
 ```
 
-This command will launch the backend server on :3000 port.
+This command will launch the backend server on :3001 port.
 
 
 

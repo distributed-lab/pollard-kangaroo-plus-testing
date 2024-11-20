@@ -1,4 +1,5 @@
 import { ed25519 } from "@noble/curves/ed25519";
+import { ExtPointType } from "@noble/curves/abstract/edwards";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { TableMap } from "./tablemap";
 
@@ -84,18 +85,26 @@ export class Utils {
             worker.terminate()
         });
     }
+
+    static extendedPointToBigInt(point: ExtPointType): bigint {
+        return BigInt("0x"+point.toHex())
+    }
+
+    static add(point1: ExtPointType, point2: ExtPointType): ExtPointType {
+        return point1.add(point2)
+    }
 }
 
 export class WorkerData{
     secretSize: number
-    pubKey: bigint
+    pubKey: ExtPointType
     w: bigint
     r: bigint
     slog: bigint[]
-    s: bigint[]
+    s: ExtPointType[]
     table: Map<bigint, bigint>
 
-    constructor(secretSize: number, pubKey: bigint, w: bigint, r: bigint, slog: bigint[], s: bigint[], table: Map<bigint, bigint>) {
+    constructor(secretSize: number, pubKey: ExtPointType, w: bigint, r: bigint, slog: bigint[], s: ExtPointType[], table: Map<bigint, bigint>) {
         this.secretSize = secretSize; 
         this.pubKey = pubKey; 
         this.w = w; 

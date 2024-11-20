@@ -14,6 +14,10 @@ function uint8ArrayToBigInt(uint8Array: Uint8Array): bigint {
     return result;
 }
 
+function isDistinguished(pubKey: bigint): boolean {
+    return !(pubKey & (2048n - 1n))
+}
+
 export async function dlpSecp256k1() {
     const kangaroo = new KangarooSecp256k1(100, 4096n/2n, 32);
     
@@ -61,33 +65,32 @@ export async function dlpSecp256k1() {
     console.log("Lowest time: " + lowestTime/1000 + " seconds")
 }
 
-export async function dlpEd25519(n:number, w: bigint, secretSize: number) {
-    const kangaroo = new KangarooEd25519(n, w, secretSize);
+export async function dlpEd25519(n:number, w: bigint, r: bigint, secretSize: number) {
+    const kangaroo = new KangarooEd25519(n, w, r, secretSize);
     
-    if (!await kangaroo.readJsonFromServer()) {
-        const startPreprocTime = performance.now();
-        kangaroo.generateTable();
-        const endPreprocTime = performance.now();
-    
-        const elapsedPreprocTime = endPreprocTime - startPreprocTime;
-        console.log(`Preprocessing time: ${elapsedPreprocTime/1000} seconds`);
-        
-        kangaroo.writeLogsToServer(`Preprocessing time: ${elapsedPreprocTime/1000} seconds\n`)
+    let privateKey = BigInt("0x3c97d734")//Utils.generateRandomInteger(secretSize)
+    let publicKey = BigInt("0xabbfc9ba9888735ae30f830196c16e51fdae386ec7b49bc76087bdd7dbe2cfce")
 
-        await kangaroo.writeJsonToServer()
+    //3c97d734
+    //abbfc9ba9888735ae30f830196c16e51fdae386ec7b49bc76087bdd7dbe2cfce
+
+
+    if (!await kangaroo.readJsonFromServer()) {
+        console.log("could not read JSON table from the server")
+        return
     }
 
     let time: number = 0
     let highestTime: number = 0
     let lowestTime: number = 9999999999999999999
-    let secretsNum = 30
+    let secretsNum = 200
     for (let i = 0; i < secretsNum; i++) {
         let privateKey = Utils.generateRandomInteger(secretSize)
         let publicKey = kangaroo.mulBasePoint(privateKey)
         console.log("Looking for " + privateKey + ". Target - " + publicKey)
     
         const startMainTime = performance.now();
-        const log = await kangaroo.solveDLP(publicKey)
+        const log = await kangaroo.solveDLPTest(publicKey)
         const endMainTime = performance.now();
         const elapsedMainTime = endMainTime - startMainTime;
 
@@ -122,17 +125,12 @@ export async function dlpEd25519(n:number, w: bigint, secretSize: number) {
 }
 
 const testData = [
-    {n: 32000, w: 2048n, secret_size: 48},
-    {n: 32000, w: 4096n, secret_size: 48},
-    {n: 40000, w: 2048n, secret_size: 48},
-    {n: 40000, w: 4096n, secret_size: 48},
-    {n: 56000, w: 2048n, secret_size: 48},
-    {n: 56000, w: 4096n, secret_size: 48},
+    {n: 40000, w: 65536n, r: 128n, secret_size: 48},
 ]
 
 async function launchTests() {
     for (const data of testData) {
-        await dlpEd25519(data.n, data.w, data.secret_size);
+        await dlpEd25519(data.n, data.w, data.r, data.secret_size);
     }
 }
 
