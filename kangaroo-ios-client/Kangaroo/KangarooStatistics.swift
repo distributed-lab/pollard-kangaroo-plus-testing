@@ -27,6 +27,14 @@ class KangarooStatistics: CustomStringConvertible {
         opEd25519ScalarSub += 1
     }
 
+    func ed25519MainOpsCount() -> Int {
+        opEd25519AddPoints + opEd25519ScalarMul
+    }
+
+    func ed25519FullOpsCount() -> Int {
+        opEd25519AddPoints + opEd25519ScalarMul + opEd25519ScalarAdd + opEd25519ScalarSub
+    }
+
     var description: String {
         """
         Statistics: 
