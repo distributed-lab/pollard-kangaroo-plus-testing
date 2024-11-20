@@ -6,10 +6,10 @@
 //
 
 class KangarooStatistics: CustomStringConvertible {
-    private var opEd25519AddPoints: Int = 0
-    private var opEd25519ScalarMul: Int = 0
-    private var opEd25519ScalarAdd: Int = 0
-    private var opEd25519ScalarSub: Int = 0
+    fileprivate var opEd25519AddPoints: Int = 0
+    fileprivate var opEd25519ScalarMul: Int = 0
+    fileprivate var opEd25519ScalarAdd: Int = 0
+    fileprivate var opEd25519ScalarSub: Int = 0
 
     func trackOpEd25519AddPointsCount() {
         opEd25519AddPoints += 1
@@ -35,5 +35,12 @@ class KangarooStatistics: CustomStringConvertible {
         opEd25519ScalarAdd: \(opEd25519ScalarAdd) 
         opEd25519ScalarSub: \(opEd25519ScalarSub) 
         """
+    }
+
+    static func +=(lhs: inout KangarooStatistics, rhs: KangarooStatistics) {
+        lhs.opEd25519AddPoints += rhs.opEd25519AddPoints
+        lhs.opEd25519ScalarMul += rhs.opEd25519ScalarMul
+        lhs.opEd25519ScalarAdd += rhs.opEd25519ScalarAdd
+        lhs.opEd25519ScalarSub += rhs.opEd25519ScalarSub
     }
 }

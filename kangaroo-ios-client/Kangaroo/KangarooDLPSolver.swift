@@ -8,10 +8,12 @@ struct KangarooDLPSolverReport {
     let time: TimeInterval
 }
 
-actor KangarooDLPSolver {
-    private let statistics: KangarooStatistics = KangarooStatistics()
-    private var taskGroup: Set<Task<(), any Error>> = .init()
+enum KangarooDLPSolverWorkerReport {
+    case privateKey(String, KangarooStatistics?)
+    case stats(KangarooStatistics?)
+}
 
+class KangarooDLPSolver {
     func solve(
         table: Dictionary<String, String>,
         W: BigUInt,
@@ -21,47 +23,69 @@ actor KangarooDLPSolver {
         hashRule: @escaping (String) -> Int,
         slog: [String],
         s: [String],
-        workersCount: Int
-    ) async -> KangarooDLPSolverReport {
-        let channel = AsyncChannel<String>()
-        let startTime = Date.now.timeIntervalSince1970
+        workersCount: Int,
+        enableStatistics: Bool
+    ) async throws -> KangarooDLPSolverReport {
+        let channel = AsyncChannel<KangarooDLPSolverWorkerReport>()
 
-        for i in 0..<workersCount {
-            startWorkerTask(
-                W: W,
-                pubKey: pubKey,
-                distinguishedRule: distinguishedRule,
-                keypairGenerationRule: keypairGenerationRule,
-                hashRule: hashRule,
-                slog: slog,
-                s: s,
-                channel: channel,
-                table: table,
-                workerIndex: i
+        let report = try await withThrowingTaskGroup(
+            of: KangarooDLPSolverWorkerReport?.self,
+            returning: KangarooDLPSolverReport.self
+        ) { taskGroup in
+            let startTime = Date.now.timeIntervalSince1970
+
+            for i in 0..<workersCount {
+                taskGroup.addTask { [weak self] in
+                    logger.log("[KangarooDLPSolverWorker \(i)] Started")
+                    let result = try await self?.startWorker(
+                        W: W,
+                        pubKey: pubKey,
+                        distinguishedRule: distinguishedRule,
+                        keypairGenerationRule: keypairGenerationRule,
+                        hashRule: hashRule,
+                        slog: slog,
+                        s: s,
+                        channel: channel,
+                        table: table,
+                        workerIndex: i,
+                        enableStatistics: enableStatistics
+                    )
+                    logger.log("[KangarooDLPSolverWorker \(i)] Finished execution")
+                    return result
+                }
+            }
+
+            var privateKey = String()
+            var statistics = KangarooStatistics()
+            for try await value in taskGroup {
+                if case let .privateKey(sk, stat)  = value {
+                    privateKey = sk
+                    if let stat = stat {
+                        statistics += stat
+                    }
+                    taskGroup.cancelAll()
+                }
+
+                if case let .stats(stat) = value {
+                    if let stat = stat {
+                        statistics += stat
+                    }
+                }
+            }
+
+            let solvingDuration = Date.now.timeIntervalSince1970 - startTime
+
+            return KangarooDLPSolverReport(
+                result: privateKey,
+                statistics: statistics,
+                time: solvingDuration
             )
         }
-
-        var privateKey = String()
-        for await value in channel {
-            logger.info("[KangarooDLPSolver] Received found private key, finishing workers...")
-            privateKey = value
-            taskGroup.forEach { $0.cancel() }
-            channel.finish()
-            break
-        }
-
-        let solvingDuration = Date.now.timeIntervalSince1970 - startTime
-
-        let report = KangarooDLPSolverReport(
-            result: privateKey,
-            statistics: statistics,
-            time: solvingDuration
-        )
 
         return report
     }
 
-    private func startWorkerTask(
+    private func startWorker(
         W: BigUInt,
         pubKey: String,
         distinguishedRule: @escaping (String) -> Bool,
@@ -69,55 +93,21 @@ actor KangarooDLPSolver {
         hashRule: @escaping (String) -> Int,
         slog: [String],
         s: [String],
-        channel: AsyncChannel<String>,
+        channel: AsyncChannel<KangarooDLPSolverWorkerReport>,
         table: Dictionary<String, String>,
-        workerIndex: Int
-    ) {
-        logger.info("[DLPSolverWorker] Started")
+        workerIndex: Int,
+        enableStatistics: Bool
+    ) async throws -> KangarooDLPSolverWorkerReport {
+        let statistics: KangarooStatistics? = enableStatistics ? KangarooStatistics() : nil
 
-        let workerTask = Task {
-            try await startWorker(
-                W: W,
-                pubKey: pubKey,
-                distinguishedRule: distinguishedRule,
-                keypairGenerationRule: keypairGenerationRule,
-                hashRule: hashRule,
-                slog: slog,
-                s: s,
-                channel: channel,
-                table: table,
-                workerIndex: workerIndex
-            )
-        }
-
-        self.taskGroup.insert(workerTask)
-    }
-
-    nonisolated private func startWorker(
-        W: BigUInt,
-        pubKey: String,
-        distinguishedRule: @escaping (String) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (String, String),
-        hashRule: @escaping (String) -> Int,
-        slog: [String],
-        s: [String],
-        channel: AsyncChannel<String>,
-        table: Dictionary<String, String>,        workerIndex: Int
-    ) async throws {
         while true {
             var (wdist, w) = try keypairGenerationRule()
-//            await statistics.trackOpEd25519ScalarMul()
-//            await statistics.trackOpEd25519AddPointsCount()
-
-            if Task.isCancelled {
-                logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
-                return
-            }
+            statistics?.trackOpEd25519ScalarMul()
+            statistics?.trackOpEd25519AddPointsCount()
 
             for _ in 0..<8*W {
                 if Task.isCancelled {
-                    logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
-                    return
+                    return .stats(statistics)
                 }
 
                 if distinguishedRule(w) {
@@ -125,33 +115,26 @@ actor KangarooDLPSolver {
 
                     if let privateKey = table[w] {
                         wdist = try Ed25519.scalarSub(privateKey, wdist)
-                        await statistics.trackOpEd25519ScalarSub()
+                        statistics?.trackOpEd25519ScalarSub()
                     }
 
                     break
                 }
 
                 let h = hashRule(w)
-
                 wdist = try Ed25519.scalarAdd(wdist, slog[h])
-//                await statistics.trackOpEd25519ScalarAdd()
+                statistics?.trackOpEd25519ScalarAdd()
 
-                do {
-                    w = try Ed25519.addPoints(w, s[h])
-                }
-                catch {
-                    logger.critical("[DLPSolverWorker \(workerIndex)] find add points failure, error: \(error.localizedDescription)")
-                    break
-                }
+                w = try Ed25519.addPoints(w, s[h])
+                statistics?.trackOpEd25519AddPointsCount()
             }
 
-//            await statistics.trackOpEd25519ScalarMul()
             let searchedPubKey = try Ed25519.pointFromScalarNoclamp(wdist)
+            statistics?.trackOpEd25519ScalarMul()
+
             if searchedPubKey == pubKey {
                 logger.info("[DLPSolverWorker \(workerIndex)] Found private key")
-                await channel.send(wdist)
-                logger.info("[DLPSolverWorker \(workerIndex)] Stopped")
-                return
+                return .privateKey(wdist, statistics)
             }
         }
     }

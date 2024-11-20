@@ -81,19 +81,6 @@ open class Kangaroo {
         (dictionary["table"] as! [[String: String]]).forEach { [unowned self] in
             table[$0["point"]!] = $0["value"]!
         }
-
-//        table.keys.forEach {
-//            print($0.serialize().count)
-//        }
-//
-//
-//        print("r:", r)
-//        print("secretSize:", secretSize)
-//        print("n:", n)
-//        print("w:", w)
-//        print("slog:", slog)
-//        print("s:", s)
-//        print("table:", table)
     }
 
     func generateTableParalized(workersCount: Int) async throws {
@@ -118,8 +105,8 @@ open class Kangaroo {
         table = generatedTable
     }
 
-    func solveDLP(publicKey: String, workersCount: Int) async throws -> KangarooDLPSolverReport {
-        let privateKey = await kangarooDLPSolver
+    func solveDLP(publicKey: String, workersCount: Int, enableStatistics: Bool = true) async throws -> KangarooDLPSolverReport {
+        let privateKey = try await kangarooDLPSolver
             .solve(
                 table: table,
                 W: w,
@@ -128,7 +115,6 @@ open class Kangaroo {
                 keypairGenerationRule: { [unowned self] in
                     let wdist = BigUInt.random(bits: secretSize - 8)
                     let wdistHex = wdist.serialize().hexEncodedString()
-//                    let wdist = BigUInt("e4eae8", radix: 16)!
                     let q = try Ed25519.pointFromScalarNoclamp(wdistHex)
                     let w = try Ed25519.addPoints(publicKey, q)
                     return (wdistHex, w)
@@ -136,7 +122,8 @@ open class Kangaroo {
                 hashRule: hash(pubKey:),
                 slog: slog,
                 s: s,
-                workersCount: workersCount
+                workersCount: workersCount,
+                enableStatistics: enableStatistics
             )
 
         return privateKey
