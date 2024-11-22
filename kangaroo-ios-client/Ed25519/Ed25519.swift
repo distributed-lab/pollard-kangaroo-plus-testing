@@ -26,15 +26,13 @@ enum Ed25519WrapperError: LocalizedError {
     }
 }
 
-
-
 enum Ed25519 {
     static func pointFromScalarNoclamp(_ scalar: String) throws -> String {
         guard let scalarBytes = Data(hex: scalar)?.bytes().reversed() else {
             throw Ed25519WrapperError.failedToDecodeHex
         }
 
-        let q = try Ed25519Core.pointFromScalarNoclamp(scalar: Array(scalarBytes))
+        let q = try Core.pointFromScalarNoclamp(scalar: Array(scalarBytes))
         return Data(q).hexEncodedString()
     }
 
@@ -43,7 +41,7 @@ enum Ed25519 {
             throw Ed25519WrapperError.failedToDecodeHex
         }
 
-        let rBytes = try Ed25519Core.addPoints(pBytes, qBytes)
+        let rBytes = try Core.addPoints(pBytes, qBytes)
         return Data(rBytes).hexEncodedString()
     }
 
@@ -52,7 +50,7 @@ enum Ed25519 {
             throw Ed25519WrapperError.failedToDecodeHex
         }
 
-        let result = Ed25519Core.scalarAdd(Array(xBytes), Array(yBytes))
+        let result = Core.scalarAdd(Array(xBytes), Array(yBytes))
         return Data(result).hexEncodedString()
     }
 
@@ -61,11 +59,11 @@ enum Ed25519 {
             throw Ed25519WrapperError.failedToDecodeHex
         }
 
-        let result = Ed25519Core.scalarSub(Array(xBytes), Array(yBytes))
+        let result = Core.scalarSub(Array(xBytes), Array(yBytes))
         return Data(result).hexEncodedString()
     }
 
-    enum Ed25519Core {
+    enum Core {
         static func pointFromScalarNoclamp(scalar: [UInt8]) throws -> [UInt8] {
             var scalar = scalar
             padEndZerosIfNeeded(elem: &scalar)
@@ -110,12 +108,6 @@ enum Ed25519 {
             return Array(z.reversed())
         }
 
-        static func isPointOnCurve(dot: BigUInt) -> Bool {
-            var dotBytes = Array(dot.serialize().bytes().reversed())
-            padEndZerosIfNeeded(elem: &dotBytes)
-            return crypto_core_ed25519_is_valid_point(dotBytes) == 1
-        }
-
         static func addPoints(_ p: [UInt8], _ q: [UInt8]) throws -> [UInt8] {
             var p = p
             var q = q
@@ -139,16 +131,6 @@ enum Ed25519 {
             }
 
             return r
-        }
-
-        static func eq(_ p: BigUInt, _ q: BigUInt) -> Bool {
-            var pBytes = Array(p.serialize().bytes().reversed())
-            var qBytes = Array(q.serialize().bytes().reversed())
-
-            padEndZerosIfNeeded(elem: &pBytes)
-            padEndZerosIfNeeded(elem: &qBytes)
-
-            return pBytes == qBytes || pBytes == qBytes.reversed()
         }
 
         static private func padEndZerosIfNeeded(elem: inout [UInt8]) {

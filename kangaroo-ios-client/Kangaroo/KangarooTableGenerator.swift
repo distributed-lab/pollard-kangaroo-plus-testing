@@ -103,10 +103,6 @@ actor KangarooTableGenerator {
     ) async throws {
         while true {
             var (wlog, w) = try keypairGenerationRule()
-            if Task.isCancelled {
-                logger.info("[TableGenerationWorker \(workerIndex)] Stopped")
-                return
-            }
 
             for _ in 0..<8*W {
                 if Task.isCancelled {
@@ -130,14 +126,7 @@ actor KangarooTableGenerator {
 
                 let h = hashRule(w)
                 wlog = try Ed25519.scalarAdd(wlog, slog[h])
-
-                do {
-                    w = try Ed25519.addPoints(w, s[h])
-                }
-                catch {
-                    logger.critical("[TableGenerationWorker \(workerIndex)] find add points failure, error: \(error.localizedDescription)")
-                    break
-                }
+                w = try Ed25519.addPoints(w, s[h])
             }
         }
     }

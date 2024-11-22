@@ -42,19 +42,18 @@ open class Kangaroo {
     /// Kangaroo table generator
     private var kangarooTableGenerator: KangarooTableGenerator
 
+    /// Kangaroo table solver
     private var kangarooDLPSolver: KangarooDLPSolver
 
     init(n: Int, w: BigUInt, secretSize: Int, r: BigUInt) throws {
         self.n = n
         self.w = w
         self.secretSize = secretSize
-        // TODO: - Make configurable
         self.r = r
         self.slog = []
         self.s = []
         self.table = .init()
 
-        // TODO: - Make configurable
         self.kangarooTableGenerator = .init()
         self.kangarooDLPSolver = .init()
 
