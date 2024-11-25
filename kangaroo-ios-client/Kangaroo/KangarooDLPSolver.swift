@@ -9,20 +9,20 @@ struct KangarooDLPSolverReport {
 }
 
 enum KangarooDLPSolverWorkerReport {
-    case privateKey(String, KangarooStatistics?)
+    case privateKey([UInt8], KangarooStatistics?)
     case stats(KangarooStatistics?)
 }
 
 class KangarooDLPSolver {
     func solve(
-        table: Dictionary<String, String>,
+        table: Dictionary<[UInt8], [UInt8]>,
         W: BigUInt,
-        pubKey: String,
-        distinguishedRule: @escaping (String) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (String, String),
-        hashRule: @escaping (String) -> Int,
-        slog: [String],
-        s: [String],
+        pubKey: [UInt8],
+        distinguishedRule: @escaping ([UInt8]) -> Bool,
+        keypairGenerationRule: @escaping () throws -> ([UInt8], [UInt8]),
+        hashRule: @escaping ([UInt8]) -> Int,
+        slog: [[UInt8]],
+        s: [[UInt8]],
         workersCount: Int,
         enableStatistics: Bool
     ) async throws -> KangarooDLPSolverReport {
@@ -55,7 +55,7 @@ class KangarooDLPSolver {
                 }
             }
 
-            var privateKey = String()
+            var privateKey = [UInt8]()
             var statistics = KangarooStatistics()
             for try await value in taskGroup {
                 if case let .privateKey(sk, stat)  = value {
@@ -76,7 +76,7 @@ class KangarooDLPSolver {
             let solvingDuration = Date.now.timeIntervalSince1970 - startTime
 
             return KangarooDLPSolverReport(
-                result: privateKey,
+                result: Data(privateKey).hexEncodedString(),
                 statistics: statistics,
                 time: solvingDuration
             )
@@ -87,14 +87,14 @@ class KangarooDLPSolver {
 
     private func startWorker(
         W: BigUInt,
-        pubKey: String,
-        distinguishedRule: @escaping (String) -> Bool,
-        keypairGenerationRule: @escaping () throws -> (String, String),
-        hashRule: @escaping (String) -> Int,
-        slog: [String],
-        s: [String],
+        pubKey: [UInt8],
+        distinguishedRule: @escaping ([UInt8]) -> Bool,
+        keypairGenerationRule: @escaping () throws -> ([UInt8], [UInt8]),
+        hashRule: @escaping ([UInt8]) -> Int,
+        slog: [[UInt8]],
+        s: [[UInt8]],
         channel: AsyncChannel<KangarooDLPSolverWorkerReport>,
-        table: Dictionary<String, String>,
+        table: Dictionary<[UInt8], [UInt8]>,
         workerIndex: Int,
         enableStatistics: Bool
     ) async throws -> KangarooDLPSolverWorkerReport {
@@ -114,7 +114,7 @@ class KangarooDLPSolver {
                     logger.info("[DLPSolverWorker \(workerIndex)] Find distinguashed element")
 
                     if let privateKey = table[w] {
-                        wdist = try Ed25519.scalarSub(privateKey, wdist)
+                        wdist = Ed25519.Core.scalarSub(privateKey, wdist)
                         statistics?.trackOpEd25519ScalarSub()
                     }
 
@@ -122,14 +122,14 @@ class KangarooDLPSolver {
                 }
 
                 let h = hashRule(w)
-                wdist = try Ed25519.scalarAdd(wdist, slog[h])
+                wdist = Ed25519.Core.scalarAdd(wdist, slog[h])
                 statistics?.trackOpEd25519ScalarAdd()
 
-                w = try Ed25519.addPoints(w, s[h])
+                w = try Ed25519.Core.addPoints(w, s[h])
                 statistics?.trackOpEd25519AddPointsCount()
             }
 
-            let searchedPubKey = try Ed25519.pointFromScalarNoclamp(wdist)
+            let searchedPubKey = try Ed25519.Core.pointFromScalarNoclamp(scalar: wdist)
             statistics?.trackOpEd25519ScalarMul()
 
             if searchedPubKey == pubKey {

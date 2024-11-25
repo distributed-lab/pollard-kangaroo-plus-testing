@@ -33,7 +33,7 @@ struct kangaroo_ios_clientTests {
     @Test func output_w512_n1600_secret32_r64() async throws {
         var reports = [KangarooDLPSolverReport]()
 
-        let secretSize = 32
+        let secretSize = 48
         let workersCount = ProcessInfo.processInfo.processorCount
 
         for _ in 0..<300 {
@@ -114,7 +114,7 @@ struct kangaroo_ios_clientTests {
         let secretSize = 32
         let workersCount = ProcessInfo.processInfo.processorCount
 
-        for _ in 0..<300 {
+        for _ in 0..<100 {
             let publicKey = try getPublicKey(secretSize: secretSize)
             let kangaroo = try Kangaroo(outputFileName: "output_2048_4000_32_64")
             let report = try await kangaroo.solveDLP(
@@ -212,6 +212,57 @@ struct kangaroo_ios_clientTests {
         )
     }
 
+    @Test func output_w65536_n40000_secret48_r128() async throws {
+        var reports = [KangarooDLPSolverReport]()
+
+        let secretSize = 48
+        let workersCount = ProcessInfo.processInfo.processorCount
+
+        for _ in 0..<20 {
+            let publicKey = try getPublicKey(secretSize: secretSize)
+            let kangaroo = try Kangaroo(outputFileName: "output_65536_40000_48_128")
+            let report = try await kangaroo.solveDLP(
+                publicKey: publicKey,
+                workersCount: workersCount,
+                enableStatistics: true
+            )
+
+            reports.append(report)
+        }
+
+        printReport(
+            reports: reports,
+            name: "output_w65536_n40000_secret48_r128",
+            secretSize: secretSize,
+            workersCount: workersCount
+        )
+    }
+
+    @Test func output_w262144_n40000_secret48_r128() async throws {
+        var reports = [KangarooDLPSolverReport]()
+
+        let secretSize = 48
+        let workersCount = ProcessInfo.processInfo.processorCount
+
+        for _ in 0..<20 {
+            let publicKey = try getPublicKey(secretSize: secretSize)
+            let kangaroo = try Kangaroo(outputFileName: "output_262144_40000_48_128")
+            let report = try await kangaroo.solveDLP(
+                publicKey: publicKey,
+                workersCount: workersCount,
+                enableStatistics: true
+            )
+
+            reports.append(report)
+        }
+
+        printReport(
+            reports: reports,
+            name: "output_w262144_n40000_secret48_r128",
+            secretSize: secretSize,
+            workersCount: workersCount
+        )
+    }
 
     private func getPublicKey(secretSize: Int) throws -> String {
         let privateKey = BigUInt.random(bits: secretSize)

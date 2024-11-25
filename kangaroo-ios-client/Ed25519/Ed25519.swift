@@ -51,7 +51,7 @@ enum Ed25519 {
         }
 
         let result = Core.scalarAdd(Array(xBytes), Array(yBytes))
-        return Data(result).hexEncodedString()
+        return Data(Array(result.reversed())).hexEncodedString()
     }
 
     static func scalarSub(_ x: String, _ y: String) throws -> String {
@@ -60,7 +60,7 @@ enum Ed25519 {
         }
 
         let result = Core.scalarSub(Array(xBytes), Array(yBytes))
-        return Data(result).hexEncodedString()
+        return Data(Array(result.reversed())).hexEncodedString()
     }
 
     enum Core {
@@ -92,7 +92,7 @@ enum Ed25519 {
             var z = [UInt8](repeating: 0, count: 32)
             crypto_core_ed25519_scalar_sub(&z, x, y)
 
-            return Array(z.reversed())
+            return z
         }
 
         static func scalarAdd(_ x: [UInt8], _ y: [UInt8]) -> [UInt8] {
@@ -105,7 +105,7 @@ enum Ed25519 {
             var z = [UInt8](repeating: 0, count: 32)
             crypto_core_ed25519_scalar_add(&z, x, y)
 
-            return Array(z.reversed())
+            return z
         }
 
         static func addPoints(_ p: [UInt8], _ q: [UInt8]) throws -> [UInt8] {
