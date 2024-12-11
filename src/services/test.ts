@@ -4,6 +4,8 @@ import { KangarooSecp256k1 } from "./secp256k1/algorithm";
 import { Utils } from "./utils";
 
 import { KangarooEd25519 } from "./ed25519/algorithm";
+import { hexToBytes } from "@noble/curves/abstract/utils";
+import { KangarooRistretto } from "./ristretto/algorithm";
 
 function uint8ArrayToBigInt(uint8Array: Uint8Array): bigint {
     let result = BigInt(0);
@@ -65,15 +67,8 @@ export async function dlpSecp256k1() {
     console.log("Lowest time: " + lowestTime/1000 + " seconds")
 }
 
-export async function dlpEd25519(n:number, w: bigint, r: bigint, secretSize: number) {
-    const kangaroo = new KangarooEd25519(n, w, r, secretSize);
-    
-    let privateKey = BigInt("0x3c97d734")//Utils.generateRandomInteger(secretSize)
-    let publicKey = BigInt("0xabbfc9ba9888735ae30f830196c16e51fdae386ec7b49bc76087bdd7dbe2cfce")
-
-    //3c97d734
-    //abbfc9ba9888735ae30f830196c16e51fdae386ec7b49bc76087bdd7dbe2cfce
-
+export async function dlpRistretto(n:number, w: bigint, r: bigint, secretSize: number) {
+    const kangaroo = new KangarooRistretto(n, w, r, secretSize);
 
     if (!await kangaroo.readJsonFromServer()) {
         console.log("could not read JSON table from the server")
@@ -85,7 +80,9 @@ export async function dlpEd25519(n:number, w: bigint, r: bigint, secretSize: num
     let lowestTime: number = 9999999999999999999
     let secretsNum = 200
     for (let i = 0; i < secretsNum; i++) {
+
         let privateKey = Utils.generateRandomInteger(secretSize)
+        console.log(privateKey)
         let publicKey = kangaroo.mulBasePoint(privateKey)
         console.log("Looking for " + privateKey + ". Target - " + publicKey)
     
@@ -125,12 +122,15 @@ export async function dlpEd25519(n:number, w: bigint, r: bigint, secretSize: num
 }
 
 const testData = [
-    {n: 40000, w: 65536n, r: 128n, secret_size: 48},
+    {n: 17000, w: 4n, r: 64n, secret_size: 16},
+    // {n: 1090, w: 64n, r: 128n, secret_size: 16},
+    // {n: 500, w: 128n, r: 128n, secret_size: 16},
+    // {n: 80, w: 256n, r: 128n, secret_size: 16},
 ]
 
 async function launchTests() {
     for (const data of testData) {
-        await dlpEd25519(data.n, data.w, data.r, data.secret_size);
+        await dlpRistretto(data.n, data.w, data.r, data.secret_size);
     }
 }
 
