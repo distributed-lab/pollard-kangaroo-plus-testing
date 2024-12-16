@@ -1,10 +1,7 @@
-import { ed25519 } from "@noble/curves/ed25519";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { KangarooSecp256k1 } from "./secp256k1/algorithm";
 import { Utils } from "./utils";
 
-import { KangarooEd25519 } from "./ed25519/algorithm";
-import { hexToBytes } from "@noble/curves/abstract/utils";
 import { KangarooRistretto } from "./ristretto/algorithm";
 
 function uint8ArrayToBigInt(uint8Array: Uint8Array): bigint {
@@ -122,7 +119,7 @@ export async function dlpRistretto(n:number, w: bigint, r: bigint, secretSize: n
 }
 
 const testData = [
-    {n: 17000, w: 4n, r: 64n, secret_size: 16},
+    {n: 4000, w: 2048n, r: 128n, secret_size: 32},
     // {n: 1090, w: 64n, r: 128n, secret_size: 16},
     // {n: 500, w: 128n, r: 128n, secret_size: 16},
     // {n: 80, w: 256n, r: 128n, secret_size: 16},

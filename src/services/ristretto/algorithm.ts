@@ -62,7 +62,6 @@ export class KangarooRistretto {
 
         while(true) {
             let wdist = Utils.generateRandomInteger(this.secretSize-8)
-            console.log(wdist)
 
             let w = pubKeyPoint.add(RistrettoPoint.BASE.multiply(wdist))
             let wBig = BigInt("0x"+w.toHex())
@@ -85,24 +84,13 @@ export class KangarooRistretto {
     
                 const h = Utils.hash(wBig, this.r)         
                 wdist = wdist + this.table.slog[h]    
-                
-                w = w.add(RistrettoPoint.fromHex(this.table.s[h].toString(16)))
-                wBig = BigInt('0x'+w.toString())
+
+                w = w.add(this.table.s[h])
+                wBig = BigInt('0x'+w.toHex())
             }
         }
     }
 
-    async writeJsonToServer() {
-        const tableJSON = this.table.writeJson(this.w, this.n, this.secretSize, this.r)
-
-        await fetch('http://localhost:3001/upload', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', 
-            },
-            body: tableJSON,
-        })
-    }
 
     async readJsonFromServer(): Promise<boolean> {
         const response = await fetch(`http://localhost:3001/table?file_name=output_${this.w.toString()}_${this.n}_${this.secretSize}_${this.r}.json`)
