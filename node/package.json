@@ -10,6 +10,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "dependencies": {
+    "@noble/curves": "^1.6.0"
+  },
   "devDependencies": {
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",

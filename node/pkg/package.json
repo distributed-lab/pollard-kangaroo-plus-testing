@@ -1,0 +1,11 @@
+{
+  "name": "pollard-kangaroo",
+  "version": "0.0.0",
+  "files": [
+    "pollard_kangaroo_bg.wasm",
+    "pollard_kangaroo.js",
+    "pollard_kangaroo.d.ts"
+  ],
+  "main": "pollard_kangaroo.js",
+  "types": "pollard_kangaroo.d.ts"
+}
