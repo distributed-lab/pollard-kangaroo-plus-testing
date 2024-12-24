@@ -29,6 +29,7 @@ fn test(dl_bits: u8, secrets_count: u32) -> Result<(), Box<dyn Error>> {
 
         println!("Secret key: {:?}", hex::encode(&sk.to_bytes()));
         println!("Public key: {:?}", hex::encode(&pk.as_bytes()));
+        println!("Public key compressed: {:?}", &pk.as_bytes());
 
         let expected_sk = kangaroo.solve_dlp(&pk.decompress().unwrap());
 
@@ -49,7 +50,7 @@ fn test(dl_bits: u8, secrets_count: u32) -> Result<(), Box<dyn Error>> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     //test(16, 1)?;
-    test(48, 200)?;
+    test(32, 200)?;
 
     Ok(())
 }

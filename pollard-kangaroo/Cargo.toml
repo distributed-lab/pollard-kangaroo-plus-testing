@@ -16,6 +16,8 @@ rand_core = { version = "0.6", default-features = false }
 anyhow = { version = "1.0", default-features = false }
 wasm-bindgen = "0.2.99"
 js-sys = "0.3.76"
+
+[dev-dependencies]
 criterion = "0.5.1"
 
 [lib]
@@ -24,6 +26,3 @@ crate-type = ["cdylib", "rlib"]
 [[bench]]
 name = "pollard"
 harness = false
-
-[profile.release]
-debug = true

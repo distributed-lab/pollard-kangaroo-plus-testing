@@ -20,11 +20,12 @@ impl Kangaroo {
 
     pub fn solve_dlp(&self, pk: &RistrettoPoint) -> u64 {
         loop {
-            let mut w_dist = utils::generate_random_scalar(self.bits - 8);
-            let mut w = pk.add(constants::RISTRETTO_BASEPOINT_POINT.mul(w_dist));
-            let mut w_big = w.compress();
+            let mut w_dist = utils::generate_random_scalar(self.bits - 8); // s
+            let mut w = pk.add(constants::RISTRETTO_BASEPOINT_POINT.mul(w_dist)); // sG
 
             for _ in 0..8 * self.w {
+                let w_big = w.compress();
+                
                 if self.is_distinguished(&w_big) {
                     if let Some(table_entry) = self.table.value(&w_big) {
                         let sk = table_entry.sub(w_dist);
@@ -41,7 +42,6 @@ impl Kangaroo {
 
                 w_dist.add_assign(&self.table.slog(h));
                 w.add_assign(&self.table.s(h));
-                w_big = w.compress();
             }
         };
     }
