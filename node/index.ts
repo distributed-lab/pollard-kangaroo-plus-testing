@@ -53,13 +53,14 @@ export async function dlpRistretto(n: bigint, w: bigint, r: bigint, dl_bits: num
         console.log(`Main time: ${elapsedMainTime/1000} seconds`);
         console.log("Found private key: ", log)
         console.log("Do private keys match: ", log == privateKey)
-        console.log("Processed " + i + " / " + secretsNum + " secrets")
+        console.log("Processed " + (i + 1) + " / " + secretsNum + " secrets")
         console.log("Mean time: " + time / (i+1) + " seconds")
         console.log("----\n")
     }
 
     console.log("Highest time: " + highestTime/1000 + " seconds")
     console.log("Lowest time: " + lowestTime/1000 + " seconds")
+    console.log("Mean time: " + time / secretsNum + " seconds");
 }
 
 async function main() {
