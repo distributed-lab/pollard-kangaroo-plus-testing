@@ -26,7 +26,7 @@ impl TableParams {
     pub fn load(source: TableSource) -> Result<TableParams, Box<dyn Error>> {
         let data = match source {
             TableSource::File(path) => std::fs::read_to_string(path)?,
-            TableSource::Network(url) => reqwest::blocking::get(&url)?.text()?
+            _ => return Err("cannot resolve".into())
         };
 
         Ok(serde_json::from_str(&data)?)

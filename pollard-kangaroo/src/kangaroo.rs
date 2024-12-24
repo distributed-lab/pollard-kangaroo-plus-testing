@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul, Sub};
+use core::ops::{Add, AddAssign, Mul, Sub};
 use curve25519_dalek_ng::constants;
 use curve25519_dalek_ng::ristretto::{CompressedRistretto, RistrettoPoint};
 use crate::table::Table;

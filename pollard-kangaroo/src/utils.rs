@@ -1,9 +1,24 @@
-use std::ops::Mul;
+use core::ops::Mul;
 use curve25519_dalek_ng::constants::RISTRETTO_BASEPOINT_POINT;
 use curve25519_dalek_ng::ristretto::CompressedRistretto;
 use curve25519_dalek_ng::scalar::Scalar;
 
-use rand_core::{OsRng, TryRngCore};
+use rand_core::{OsRng, RngCore};
+
+pub fn slice_to_scalar(mut s: Vec<u8>) -> Scalar {
+    s.reverse();
+    s.resize(32, 0);
+
+    Scalar::from_canonical_bytes(s.try_into().unwrap()).unwrap()
+}
+
+pub fn slice_to_point(mut s: Vec<u8>) -> CompressedRistretto {
+    s.reverse();
+    s.resize(32, 0);
+    s.reverse();
+
+    CompressedRistretto::from_slice(&s)
+}
 
 pub fn hex_string_to_scalar(s: String) -> Scalar {
     let mut scalar = hex_string_to_bytes(s);
@@ -23,7 +38,7 @@ pub fn scalar_to_u64(s: &Scalar) -> u64 {
 
 pub fn generate_random_scalar(bits: u8) -> Scalar {
     let mut key = [0u8; 32];
-    OsRng.try_fill_bytes(&mut key[0..(bits as usize >> 3)]).unwrap();
+    OsRng.fill_bytes(&mut key[0..(bits as usize >> 3)]);
 
     Scalar::from_canonical_bytes(key.try_into().unwrap()).unwrap()
 }
